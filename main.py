@@ -8,7 +8,7 @@ import numpy as np
 
 from PIL import Image
 from enum import Enum
-from typing import List
+from typing import List, Dict, Tuple
 from selenium import webdriver
 
 from colorama import Fore, init
@@ -23,8 +23,8 @@ class ColorType(Enum):
     PINK = 28
 
 Color = ColorType               # RGB color
-Position = dict[str, int]       # {'x': int, 'y': int}
-Pixel = dict[Color, Position]
+Position = Dict[str, int]       # {'x': int, 'y': int}
+Pixel = Dict[Color, Position]
 
 
 class WPlace:
@@ -78,7 +78,7 @@ class WPlace:
         response = requests.get(url, headers=self.headers)
         print(response.json())
 
-    def crop_image(self, image_path: str, crop_box: tuple[int, int, int, int]) -> None:
+    def crop_image(self, image_path: str, crop_box: Tuple[int, int, int, int]) -> None:
         """
         Crop an image and save the result.
         
@@ -130,7 +130,7 @@ class WPlace:
         err /= float(gray1.shape[0] * gray1.shape[1])
         return err <= threshold
 
-    def check_change(self, api_image: str, coords: tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
+    def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """
         Downloads the new image and checks for changes against the last image.
 

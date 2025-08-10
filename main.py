@@ -245,6 +245,7 @@ def main(arts_data: dict):
         print(f"▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ {time_info} ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")
         try:
             for name in arts_data["arts"]:
+                if not arts_data["arts"][name]["track"]: continue
                 print(Fore.LIGHTYELLOW_EX + f"Checking art: {Fore.RESET}{name}", end=' -> ')
 
                 # Get art details

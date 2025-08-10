@@ -1,0 +1,30 @@
+{
+    "discord_webhook_url": "",
+    "cooldown": 30,
+    "arts": {
+        "furritos": {
+            "track": true,
+            "api_image": "",
+            "start_coords": {
+                "x": 0,
+                "y": 0
+            },
+            "end_coords": {
+                "x": 0,
+                "y": 0
+            }
+        },
+        "pokemons": {
+            "track": false,
+            "api_image": "",
+            "start_coords": {
+                "x": 0,
+                "y": 0
+            },
+            "end_coords": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    }
+}

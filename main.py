@@ -155,12 +155,8 @@ class WPlace:
         changed = []
         for x, y in zip(xs, ys):
             pixel = image2[y, x]
-            if pixel.shape[0] == 4:
-                b, g, r, a = pixel
-                color = {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
-            else:
-                b, g, r = pixel
-                color = {"r": int(r), "g": int(g), "b": int(b)}
+            b, g, r, a = pixel
+            color = {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
             changed.append({
                 "x": int(x),
                 "y": int(y),
@@ -223,10 +219,11 @@ class WPlace:
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             for pixel in changed:
+                print(pixel)
                 name, id_ = get_color_id(pixel['color'])
                 print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {name}={id_}")
             self.send_alert(
-                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:" +
+                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:\n" +
                 "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {get_color_id(pixel['color'])[0]}={get_color_id(pixel['color'])[1]}" for pixel in changed]),
                 good_image_path,
                 new_image_path

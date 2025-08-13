@@ -226,7 +226,8 @@ class WPlace:
                 )
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)")
             self.send_alert(
-                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)",
+                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\nPixeles cambiados:\n" +
+                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}" for pixel in changed]),
                 good_image_path,
                 new_image_path
             )

@@ -139,6 +139,46 @@ class WPlace:
         err /= float(gray1.shape[0] * gray1.shape[1])
         return bool(err <= threshold)
 
+    def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
+        """
+        Locate pixels that differ between two images.
+
+        Args:
+            good: Path to the reference image.
+            new: Path to the new image to compare.
+
+        Returns:
+            List of dictionaries with the x, y coordinates and RGBA color of the
+            changed pixels in the new image.
+        """
+        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
+
+        if image1 is None or image2 is None:
+            return []
+
+        if image1.shape != image2.shape:
+            return []
+
+        diff = cv2.absdiff(image1, image2)
+        ys, xs = np.where(np.any(diff != 0, axis=2))
+
+        changed = []
+        for x, y in zip(xs, ys):
+            pixel = image2[y, x]
+            if len(pixel) == 4:
+                b, g, r, a = pixel
+                color = {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
+            else:
+                b, g, r = pixel
+                color = {"r": int(r), "g": int(g), "b": int(b)}
+            changed.append({
+                "x": int(x),
+                "y": int(y),
+                "color": color
+            })
+        return changed
+
     def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """
         Downloads the new image and checks for changes against the last image.
@@ -184,6 +224,14 @@ class WPlace:
 
         # Check for changes
         if not self.compare_image(good_image_path, new_image_path):
+            changed = self.get_changed_pixels(good_image_path, new_image_path)
+            for pixel in changed:
+                color = pixel["color"]
+                color_mode = "RGBA" if "a" in color else "RGB"
+                print(
+                    Fore.LIGHTRED_EX +
+                    f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {color_mode}={color}"
+                )
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)")
             self.send_alert(
                 "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)",

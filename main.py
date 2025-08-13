@@ -132,61 +132,37 @@ class WPlace:
 
     def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
         """
-        Localiza píxeles que difieren entre dos imágenes, distinguiendo negro de transparente.
+        Locate pixels that differ between two images.
 
         Args:
-            good: Ruta a la imagen de referencia.
-            new: Ruta a la imagen nueva a comparar.
+            good: Path to the reference image.
+            new: Path to the new image to compare.
 
         Returns:
-            Lista de dicts con x, y y el color RGBA del píxel cambiado en la imagen nueva.
-            (Si la imagen no tiene alfa, A=255).
+            List of dictionaries with the x, y coordinates and RGB color of the
+            changed pixels in the new image.
         """
-        # Lee preservando canales y profundidad (incluye alfa si existe)
-        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
-        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
+        image1 = cv2.imread(good)
+        image2 = cv2.imread(new)
 
         if image1 is None or image2 is None:
             return []
 
-        # Asegura que ambas tengan 4 canales (BGRA); si vienen en BGR, añade alfa=255
-        def to_bgra(img):
-            if img.ndim == 2:  # escala de grises -> BGRA
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
-            elif img.shape[2] == 3:  # BGR -> BGRA
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-            elif img.shape[2] == 4:  # ya BGRA
-                pass
-            else:
-                raise ValueError("Número de canales no soportado.")
-            return img
-
-        try:
-            image1 = to_bgra(image1)
-            image2 = to_bgra(image2)
-        except ValueError:
+        if image1.shape != image2.shape:
             return []
 
-        # Dimensiones deben coincidir
-        if image1.shape[:2] != image2.shape[:2]:
-            return []
-
-        # Diferencia absoluta canal a canal (B,G,R,A)
         diff = cv2.absdiff(image1, image2)
-
-        # Píxeles donde cambia cualquiera de los 4 canales (incluido A)
         ys, xs = np.where(np.any(diff != 0, axis=2))
 
         changed = []
         for x, y in zip(xs, ys):
-            b, g, r, a = image2[y, x].tolist()
+            b, g, r = image2[y, x]
             changed.append({
                 "x": int(x),
                 "y": int(y),
-                "color": {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
+                "color": {"r": int(r), "g": int(g), "b": int(b)}
             })
         return changed
-
 
     def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """

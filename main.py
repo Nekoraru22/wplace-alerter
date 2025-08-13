@@ -46,15 +46,6 @@ class WPlace:
             'TE': 'trailers'
         }
 
-        # Load image with Selenium
-        options = Options()
-        options.add_argument("--disable-logging")
-        options.add_argument("--log-level=3") # Suppress all logs except fatal ones (0=ALL, 1=INFO, 2=WARNING, 3=SEVERE, 4=OFF)
-        options.add_experimental_option("excludeSwitches", ["enable-logging"]) # Exclude specific logging switches
-        options.set_capability("goog:loggingPrefs", {"performance": "ALL"}) # Keep this if you need performance logs
-
-        self.driver = webdriver.Chrome(options=options)
-
     def paint(self, url: str, pixels: List[Pixel]) -> None:
         """
         NOT WORKING -> Cloudflare protection
@@ -183,17 +174,25 @@ class WPlace:
             good_image_path: Path to the "good" image
             new_image_path: Path to the "new" image
         """
-        self.driver.get(api_image)
+        # Load image with Selenium
+        options = Options()
+        options.add_argument("--disable-logging")
+        options.add_argument("--log-level=3") # Suppress all logs except fatal ones (0=ALL, 1=INFO, 2=WARNING, 3=SEVERE, 4=OFF)
+        options.add_experimental_option("excludeSwitches", ["enable-logging"]) # Exclude specific logging switches
+        options.set_capability("goog:loggingPrefs", {"performance": "ALL"}) # Keep this if you need performance logs
+        driver = webdriver.Chrome(options=options)
+
+        driver.get(api_image)
 
         # Get network logs and download the image
-        logs = self.driver.get_log("performance")
+        logs = driver.get_log("performance")
         for log in logs:
             message = json.loads(log["message"])
             if message["message"]["method"] == "Network.responseReceived":
                 response = message["message"]["params"]["response"]
                 if response["url"].endswith(".png"):
                     # Get response body
-                    response_body = self.driver.execute_cdp_cmd(
+                    response_body = driver.execute_cdp_cmd(
                         "Network.getResponseBody",
                         {"requestId": message["message"]["params"]["requestId"]}
                     )
@@ -204,7 +203,7 @@ class WPlace:
                     with open(new_image_path, 'wb') as file:
                         file.write(image_data)
                     break
-        self.driver.quit()
+        driver.quit()
 
         # Crop the image
         self.crop_image(new_image_path, coords)

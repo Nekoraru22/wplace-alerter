@@ -132,43 +132,61 @@ class WPlace:
 
     def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
         """
-        Locate pixels that differ between two images.
+        Localiza píxeles que difieren entre dos imágenes, distinguiendo negro de transparente.
 
         Args:
-            good: Path to the reference image.
-            new: Path to the new image to compare.
+            good: Ruta a la imagen de referencia.
+            new: Ruta a la imagen nueva a comparar.
 
         Returns:
-            List of dictionaries with the x, y coordinates and RGBA color of the
-            changed pixels in the new image.
+            Lista de dicts con x, y y el color RGBA del píxel cambiado en la imagen nueva.
+            (Si la imagen no tiene alfa, A=255).
         """
+        # Lee preservando canales y profundidad (incluye alfa si existe)
         image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
         image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
 
         if image1 is None or image2 is None:
             return []
 
-        if image1.shape != image2.shape:
+        # Asegura que ambas tengan 4 canales (BGRA); si vienen en BGR, añade alfa=255
+        def to_bgra(img):
+            if img.ndim == 2:  # escala de grises -> BGRA
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGRA)
+            elif img.shape[2] == 3:  # BGR -> BGRA
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+            elif img.shape[2] == 4:  # ya BGRA
+                pass
+            else:
+                raise ValueError("Número de canales no soportado.")
+            return img
+
+        try:
+            image1 = to_bgra(image1)
+            image2 = to_bgra(image2)
+        except ValueError:
             return []
 
+        # Dimensiones deben coincidir
+        if image1.shape[:2] != image2.shape[:2]:
+            return []
+
+        # Diferencia absoluta canal a canal (B,G,R,A)
         diff = cv2.absdiff(image1, image2)
+
+        # Píxeles donde cambia cualquiera de los 4 canales (incluido A)
         ys, xs = np.where(np.any(diff != 0, axis=2))
 
         changed = []
         for x, y in zip(xs, ys):
-            pixel = image2[y, x]
-            if len(pixel) == 4:
-                b, g, r, a = pixel
-                color = {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
-            else:
-                b, g, r = pixel
-                color = {"r": int(r), "g": int(g), "b": int(b)}
+            b, g, r, a = image2[y, x].tolist()
             changed.append({
                 "x": int(x),
                 "y": int(y),
-                "color": color
+                "color": {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
             })
         return changed
+
 
     def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """
@@ -225,13 +243,7 @@ class WPlace:
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             for pixel in changed:
-                color = pixel["color"]
-                color_mode = "RGBA" if "a" in color else "RGB"
-                print(
-                    Fore.LIGHTRED_EX +
-                    f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {color_mode}={color}"
-                )
-            print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)")
+                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}")
             self.send_alert(
                 "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:" +
                 "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}" for pixel in changed]),

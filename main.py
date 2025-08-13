@@ -8,8 +8,8 @@ import numpy as np
 
 from PIL import Image
 from enum import Enum
-from typing import List, Dict, Tuple
 from selenium import webdriver
+from typing import List, Dict, Tuple
 
 from colorama import Fore, init
 from selenium.webdriver.chrome.options import Options
@@ -45,6 +45,15 @@ class WPlace:
             'Priority': 'u=4',
             'TE': 'trailers'
         }
+
+        # Load image with Selenium
+        options = Options()
+        options.add_argument("--disable-logging")
+        options.add_argument("--log-level=3") # Suppress all logs except fatal ones (0=ALL, 1=INFO, 2=WARNING, 3=SEVERE, 4=OFF)
+        options.add_experimental_option("excludeSwitches", ["enable-logging"]) # Exclude specific logging switches
+        options.set_capability("goog:loggingPrefs", {"performance": "ALL"}) # Keep this if you need performance logs
+
+        self.driver = webdriver.Chrome(options=options)
 
     def paint(self, url: str, pixels: List[Pixel]) -> None:
         """
@@ -128,7 +137,7 @@ class WPlace:
         # Calculate the Mean Squared Error (MSE)
         err = np.sum((gray1.astype("float") - gray2.astype("float")) ** 2)
         err /= float(gray1.shape[0] * gray1.shape[1])
-        return err <= threshold
+        return bool(err <= threshold)
 
     def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """
@@ -140,25 +149,17 @@ class WPlace:
             good_image_path: Path to the "good" image
             new_image_path: Path to the "new" image
         """
-        # Load image with Selenium
-        options = Options()
-        options.add_argument("--disable-logging")
-        options.add_argument("--log-level=3") # Suppress all logs except fatal ones (0=ALL, 1=INFO, 2=WARNING, 3=SEVERE, 4=OFF)
-        options.add_experimental_option("excludeSwitches", ["enable-logging"]) # Exclude specific logging switches
-        options.set_capability("goog:loggingPrefs", {"performance": "ALL"}) # Keep this if you need performance logs
-
-        driver = webdriver.Chrome(options=options)
-        driver.get(api_image)
+        self.driver.get(api_image)
 
         # Get network logs and download the image
-        logs = driver.get_log("performance")
+        logs = self.driver.get_log("performance")
         for log in logs:
             message = json.loads(log["message"])
             if message["message"]["method"] == "Network.responseReceived":
                 response = message["message"]["params"]["response"]
                 if response["url"].endswith(".png"):
                     # Get response body
-                    response_body = driver.execute_cdp_cmd(
+                    response_body = self.driver.execute_cdp_cmd(
                         "Network.getResponseBody",
                         {"requestId": message["message"]["params"]["requestId"]}
                     )
@@ -169,7 +170,7 @@ class WPlace:
                     with open(new_image_path, 'wb') as file:
                         file.write(image_data)
                     break
-        driver.quit()
+        self.driver.quit()
 
         # Crop the image
         self.crop_image(new_image_path, coords)

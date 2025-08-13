@@ -107,9 +107,9 @@ class WPlace:
         Returns:
             bool: True if images are similar, False otherwise
         """
-        # Load images
-        image1 = cv2.imread(good)
-        image2 = cv2.imread(new)
+        # Load images with alpha channel to consider transparency differences
+        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
 
         # Check if images are loaded successfully
         if image1 is None or image2 is None:
@@ -121,13 +121,9 @@ class WPlace:
             print(Fore.LIGHTRED_EX + f"Error: Image dimensions do not match. Image1: {image1.shape}, Image2: {image2.shape}")
             return False # Cannot compare pixel by pixel if dimensions differ
 
-        # Convert to grayscale for simpler comparison, or keep BGR if color difference matters
-        gray1 = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-        gray2 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
-
-        # Calculate the Mean Squared Error (MSE)
-        err = np.sum((gray1.astype("float") - gray2.astype("float")) ** 2)
-        err /= float(gray1.shape[0] * gray1.shape[1])
+        # Calculate the Mean Squared Error (MSE) across all channels
+        diff = image1.astype("float") - image2.astype("float")
+        err = np.mean(diff ** 2)
         return bool(err <= threshold)
 
     def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
@@ -139,11 +135,11 @@ class WPlace:
             new: Path to the new image to compare.
 
         Returns:
-            List of dictionaries with the x, y coordinates and RGB color of the
+            List of dictionaries with the x, y coordinates and RGBA color of the
             changed pixels in the new image.
         """
-        image1 = cv2.imread(good)
-        image2 = cv2.imread(new)
+        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
+        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
 
         if image1 is None or image2 is None:
             return []
@@ -156,11 +152,17 @@ class WPlace:
 
         changed = []
         for x, y in zip(xs, ys):
-            b, g, r = image2[y, x]
+            pixel = image2[y, x]
+            if pixel.shape[0] == 4:
+                b, g, r, a = pixel
+                color = {"r": int(r), "g": int(g), "b": int(b), "a": int(a)}
+            else:
+                b, g, r = pixel
+                color = {"r": int(r), "g": int(g), "b": int(b)}
             changed.append({
                 "x": int(x),
                 "y": int(y),
-                "color": {"r": int(r), "g": int(g), "b": int(b)}
+                "color": color
             })
         return changed
 
@@ -219,10 +221,11 @@ class WPlace:
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             for pixel in changed:
-                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}")
+                color_format = "RGBA" if "a" in pixel["color"] else "RGB"
+                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {color_format}={pixel['color']}")
             self.send_alert(
                 "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:" +
-                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}" for pixel in changed]),
+                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {'RGBA' if 'a' in pixel['color'] else 'RGB'}={pixel['color']}" for pixel in changed]),
                 good_image_path,
                 new_image_path
             )

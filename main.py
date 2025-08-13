@@ -219,13 +219,9 @@ class WPlace:
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             for pixel in changed:
-                print(
-                    Fore.LIGHTRED_EX +
-                    f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}"
-                )
-            print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)")
+                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}")
             self.send_alert(
-                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\nPixeles cambiados:\n" +
+                "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:" +
                 "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}" for pixel in changed]),
                 good_image_path,
                 new_image_path
@@ -264,7 +260,6 @@ class WPlace:
         try:
             response = requests.post(discord_webhook_url, data=payload, files=files)
             response.raise_for_status()
-            print(Fore.LIGHTRED_EX + f"Alerta enviada correctamente. Código de estado: {response.status_code}")
         except requests.exceptions.HTTPError as errh:
             print(Fore.LIGHTRED_EX + f"Error HTTP: {errh}")
         except requests.exceptions.ConnectionError as errc:

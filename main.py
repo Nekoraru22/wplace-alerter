@@ -14,6 +14,8 @@ from typing import List, Dict, Tuple
 from colorama import Fore, init
 from selenium.webdriver.chrome.options import Options
 
+from data.colors import Color, get_color_id
+
 init(autoreset=True)
 
 # Van en orden literalmente xD
@@ -221,11 +223,11 @@ class WPlace:
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             for pixel in changed:
-                color_format = "RGBA" if "a" in pixel["color"] else "RGB"
-                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {color_format}={pixel['color']}")
+                name, id_ = get_color_id(pixel['color'])
+                print(Fore.LIGHTRED_EX + f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {name}={id_}")
             self.send_alert(
                 "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\nPixeles cambiados:" +
-                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {'RGBA' if 'a' in pixel['color'] else 'RGB'}={pixel['color']}" for pixel in changed]),
+                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {get_color_id(pixel['color'])[0]}={get_color_id(pixel['color'])[1]}" for pixel in changed]),
                 good_image_path,
                 new_image_path
             )

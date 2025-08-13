@@ -139,6 +139,40 @@ class WPlace:
         err /= float(gray1.shape[0] * gray1.shape[1])
         return bool(err <= threshold)
 
+    def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
+        """
+        Locate pixels that differ between two images.
+
+        Args:
+            good: Path to the reference image.
+            new: Path to the new image to compare.
+
+        Returns:
+            List of dictionaries with the x, y coordinates and RGB color of the
+            changed pixels in the new image.
+        """
+        image1 = cv2.imread(good)
+        image2 = cv2.imread(new)
+
+        if image1 is None or image2 is None:
+            return []
+
+        if image1.shape != image2.shape:
+            return []
+
+        diff = cv2.absdiff(image1, image2)
+        ys, xs = np.where(np.any(diff != 0, axis=2))
+
+        changed = []
+        for x, y in zip(xs, ys):
+            b, g, r = image2[y, x]
+            changed.append({
+                "x": int(x),
+                "y": int(y),
+                "color": {"r": int(r), "g": int(g), "b": int(b)}
+            })
+        return changed
+
     def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
         """
         Downloads the new image and checks for changes against the last image.
@@ -184,6 +218,12 @@ class WPlace:
 
         # Check for changes
         if not self.compare_image(good_image_path, new_image_path):
+            changed = self.get_changed_pixels(good_image_path, new_image_path)
+            for pixel in changed:
+                print(
+                    Fore.LIGHTRED_EX +
+                    f"Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color RGB={pixel['color']}"
+                )
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)")
             self.send_alert(
                 "¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)",

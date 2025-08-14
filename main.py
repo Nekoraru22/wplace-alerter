@@ -48,13 +48,23 @@ class WPlace:
             'TE': 'trailers'
         }
 
-    def paint(self, url: str, pixels: List[Pixel]) -> None:
+        # Load image with Selenium
+        options = Options()
+        options.add_argument("--disable-logging")
+        options.add_argument("--log-level=3")
+        options.add_experimental_option("excludeSwitches", ["enable-logging"])
+        options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+        self.driver = webdriver.Chrome(options=options)
+
+    def convert_to_api(self, pixels: List[Pixel]) -> Tuple[List[int], List[int]]:
         """
-        NOT WORKING -> Cloudflare protection
-        Function that paints a pixel by API
+        Convert pixel data to API format.
 
         Args:
-            pixels: List of pixels to paint
+            pixels: List of pixels to convert
+
+        Returns:
+            Tuple of (colors, coords) where colors is a list of color IDs and coords is a list of coordinates
         """
         colors = []
         coords = []
@@ -63,7 +73,31 @@ class WPlace:
                 colors.append(color.value)
                 coords.append(position['x'])
                 coords.append(position['y'])
+        return colors, coords
 
+    def generate_command(self, pixels) -> str:
+        """
+        Generate a js command to fix the pixels
+
+        Args:
+            pixels: List of pixels to fix
+
+        Returns:
+            str: The generated js command
+        """
+        colors, coords = self.convert_to_api(pixels)
+        command = f"```js\nfixPixels({json.dumps(colors)}, {json.dumps(coords)})\n```"
+        return command
+
+    def paint(self, url: str, pixels: List[Pixel]) -> None:
+        """
+        NOT WORKING -> Cloudflare protection
+        Function that paints a pixel by API
+
+        Args:
+            pixels: List of pixels to paint
+        """
+        colors, coords = self.convert_to_api(pixels)
         data = {"colors": colors, "coords": coords}
         response = requests.post(url, headers=self.headers, json=data)
         print(response.json())
@@ -174,25 +208,17 @@ class WPlace:
             good_image_path: Path to the "good" image
             new_image_path: Path to the "new" image
         """
-        # Load image with Selenium
-        options = Options()
-        options.add_argument("--disable-logging")
-        options.add_argument("--log-level=3") # Suppress all logs except fatal ones (0=ALL, 1=INFO, 2=WARNING, 3=SEVERE, 4=OFF)
-        options.add_experimental_option("excludeSwitches", ["enable-logging"]) # Exclude specific logging switches
-        options.set_capability("goog:loggingPrefs", {"performance": "ALL"}) # Keep this if you need performance logs
-        driver = webdriver.Chrome(options=options)
-
-        driver.get(api_image)
+        self.driver.get(api_image)
 
         # Get network logs and download the image
-        logs = driver.get_log("performance")
+        logs = self.driver.get_log("performance")
         for log in logs:
             message = json.loads(log["message"])
             if message["message"]["method"] == "Network.responseReceived":
                 response = message["message"]["params"]["response"]
                 if response["url"].endswith(".png"):
                     # Get response body
-                    response_body = driver.execute_cdp_cmd(
+                    response_body = self.driver.execute_cdp_cmd(
                         "Network.getResponseBody",
                         {"requestId": message["message"]["params"]["requestId"]}
                     )
@@ -203,7 +229,7 @@ class WPlace:
                     with open(new_image_path, 'wb') as file:
                         file.write(image_data)
                     break
-        driver.quit()
+        self.driver.quit()
 
         # Crop the image
         self.crop_image(new_image_path, coords)
@@ -223,8 +249,8 @@ class WPlace:
                 name, id_ = get_color_id(pixel['color'])
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {name}(id: {id_})")
             self.send_alert(
-                "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Pixeles cambiados:\n" +
-                "\n".join([f" - X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {get_color_id(pixel['color'])[0]}(id: {get_color_id(pixel['color'])[1]})" for pixel in changed]),
+                "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
+                self.generate_command(changed),
                 good_image_path,
                 new_image_path
             )
@@ -300,6 +326,7 @@ def main(arts_data: dict):
 
                 # Check for changes
                 wplace.check_change(api_image, coords, f'{path}good.png', f'{path}new.png')
+                time.sleep(5)
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(arts_data["cooldown"])

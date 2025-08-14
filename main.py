@@ -56,6 +56,9 @@ class WPlace:
         options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
         self.driver = webdriver.Chrome(options=options)
 
+    def __del__(self):
+        self.driver.quit()
+
     def convert_to_api(self, pixels: List[Pixel]) -> Tuple[List[int], List[int]]:
         """
         Convert pixel data to API format.
@@ -229,7 +232,6 @@ class WPlace:
                     with open(new_image_path, 'wb') as file:
                         file.write(image_data)
                     break
-        self.driver.quit()
 
         # Crop the image
         self.crop_image(new_image_path, coords)

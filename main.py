@@ -88,7 +88,15 @@ class WPlace:
         Returns:
             str: The generated js command
         """
-        colors, coords = self.convert_to_api(pixels)
+        pixel_objects = []
+        for pixel in pixels:
+            pixel_objects.append({
+                "color": pixel['color'],
+                "x": pixel['x'],
+                "y": pixel['y']
+            })
+
+        colors, coords = self.convert_to_api(pixel_objects)
         command = f"```js\nfixPixels({json.dumps(colors)}, {json.dumps(coords)})\n```"
         return command
 

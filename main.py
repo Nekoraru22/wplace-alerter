@@ -1,4 +1,4 @@
-from turtle import position
+from calendar import c
 import cv2
 import json
 import os
@@ -79,7 +79,7 @@ class WPlace:
                 coords.append(position['y'])
         return colors, coords
 
-    def generate_command(self, pixels) -> str:
+    def generate_command(self, pixels, coords: List[int]) -> str:
         """
         Generate a js command to fix the pixels
 
@@ -92,7 +92,7 @@ class WPlace:
         pixel_objects = []
         for pixel in pixels:
             color = get_color_id(pixel['color'])[1]
-            position = {'x': pixel['x'], 'y': pixel['y']}
+            position = {'x': int(coords[0] + pixel['x']), 'y': int(coords[1] + pixel['y'])}
             pixel_objects.append({color: position})
 
         colors, coords = self.convert_to_api(pixel_objects)
@@ -259,7 +259,7 @@ class WPlace:
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {name}(id: {id_})")
             self.send_alert(
                 "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
-                self.generate_command(changed),
+                self.generate_command(changed, coords),
                 good_image_path,
                 new_image_path
             )

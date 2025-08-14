@@ -221,10 +221,10 @@ class WPlace:
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :<")
             for pixel in changed:
                 name, id_ = get_color_id(pixel['color'])
-                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {name}={id_}")
+                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={pixel['x']}, Y={pixel['y']} con color {name}(id: {id_})")
             self.send_alert(
                 "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Pixeles cambiados:\n" +
-                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {get_color_id(pixel['color'])[0]}={get_color_id(pixel['color'])[1]}" for pixel in changed]),
+                "\n".join([f" - X={pixel['x']}, Y={pixel['y']} con color {get_color_id(pixel['color'])[0]}(id: {get_color_id(pixel['color'])[1]})" for pixel in changed]),
                 good_image_path,
                 new_image_path
             )

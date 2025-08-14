@@ -1,3 +1,4 @@
+from turtle import position
 import cv2
 import json
 import os
@@ -73,7 +74,7 @@ class WPlace:
         coords = []
         for pixel in pixels:
             for color, position in pixel.items():
-                colors.append(color.value)
+                colors.append(color)
                 coords.append(position['x'])
                 coords.append(position['y'])
         return colors, coords
@@ -90,11 +91,9 @@ class WPlace:
         """
         pixel_objects = []
         for pixel in pixels:
-            pixel_objects.append({
-                "color": pixel['color'],
-                "x": pixel['x'],
-                "y": pixel['y']
-            })
+            color = get_color_id(pixel['color'])[1]
+            position = {'x': pixel['x'], 'y': pixel['y']}
+            pixel_objects.append({color: position})
 
         colors, coords = self.convert_to_api(pixel_objects)
         command = f"```js\nfixPixels({json.dumps(colors)}, {json.dumps(coords)})\n```"
@@ -341,15 +340,6 @@ def main(arts_data: dict):
             print(f"Error: {e}")
         time.sleep(arts_data["cooldown"])
         print()
-    
-    # Proves
-    # pixels: List[Pixel] = [
-    #     {
-    #         Color(ColorType.PINK): {'x': 40, 'y': 162},
-    #     }
-    # ]
-    # wplace.check_pixel(api_image.replace(".png", ""), pixels[0])
-    # wplace.paint(api_image.replace(".png", ""), pixels)
 
 
 if __name__ == "__main__":

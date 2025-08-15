@@ -91,7 +91,7 @@ class WPlace:
         """
         pixel_objects = []
         for pixel in pixels:
-            color = get_color_id(pixel['color'])[1]
+            color = get_color_id(pixel['old_color'])[1]
             position = {'x': int(coords[0] + pixel['x']), 'y': int(coords[1] + pixel['y'])}
             pixel_objects.append({color: position})
 
@@ -200,11 +200,13 @@ class WPlace:
         for x, y in zip(xs, ys):
             pixel = image2[y, x]
             b, g, r, a = pixel
-            color = (int(r), int(g), int(b), int(a))
+            new_color = (int(r), int(g), int(b), int(a))
+            old_color = (int(image1[y, x][2]), int(image1[y, x][1]), int(image1[y, x][0]), int(image1[y, x][3]))
             changed.append({
                 "x": int(x),
                 "y": int(y),
-                "color": color
+                "new_color": new_color,
+                "old_color": old_color
             })
         return changed
 
@@ -255,8 +257,9 @@ class WPlace:
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :<")
             for pixel in changed:
-                name, id_ = get_color_id(pixel['color'])
-                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {name}(id: {id_})")
+                new_color_name, id_ = get_color_id(pixel['new_color'])
+                old_color_name, _ = get_color_id(pixel['old_color'])
+                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {new_color_name}(id: {id_}) (Antes: {old_color_name})")
             self.send_alert(
                 "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
                 self.generate_command(changed, coords),

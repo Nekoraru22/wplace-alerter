@@ -257,9 +257,9 @@ class WPlace:
             changed = self.get_changed_pixels(good_image_path, new_image_path)
             print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :<")
             for pixel in changed:
-                new_color_name, id_ = get_color_id(pixel['new_color'])
-                old_color_name, _ = get_color_id(pixel['old_color'])
-                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} con color {new_color_name}(id: {id_}) (Antes: {old_color_name})")
+                new_color_name, new_color_id = get_color_id(pixel['new_color'])
+                old_color_name, old_color_id = get_color_id(pixel['old_color'])
+                print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} de {old_color_name}(id: {old_color_id}) a {new_color_name}(id: {new_color_id})")
             self.send_alert(
                 "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
                 self.generate_command(changed, coords),

@@ -115,14 +115,11 @@ class WPlace:
             abs_y = coords[1] + pixel['y']
 
             # Color
-            r, g, b, a = pixel["new_color"]
-            _, color_idx = get_color_id(pixel["new_color"])
-
-            # Pixel relativo al tile
-            pixel_x, pixel_y = pixel["x"], pixel["y"]
+            r, g, b, a = pixel["old_color"]
+            _, color_idx = get_color_id(pixel["old_color"])
 
             cmd = (
-                f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({pixel_x},{pixel_y});s=0", {{\n'
+                f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'
                 f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
                 f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'
                 f'    "pixel": [{abs_x}, {abs_y}],\n'

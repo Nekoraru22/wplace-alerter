@@ -1,4 +1,4 @@
-from calendar import c
+import re
 import cv2
 import json
 import os
@@ -79,7 +79,24 @@ class WPlace:
                 coords.append(position['y'])
         return colors, coords
 
-    def generate_command(self, pixels, coords: List[int]) -> str:
+    def get_tiles_from_api(self, api_image: str) -> Tuple[int, int]:
+        """
+        Get tile information from the API.
+
+        Args:
+            api_image: The API image URL
+
+        Returns:
+            List of tile information
+        """
+        match = re.search(r'https://backend\.wplace\.live/files/s0/tiles/(\d+)/(\d+)\.png', api_image)
+        if match:
+            tile_x = int(match.group(1))
+            tile_y = int(match.group(2))
+            return (tile_x, tile_y)
+        return (0, 0)
+
+    def generate_command(self, pixels, coords: Tuple[int, int, int, int], api_image: str) -> str:
         """
         Generate a js command to fix the pixels
 
@@ -89,15 +106,33 @@ class WPlace:
         Returns:
             str: The generated js command
         """
-        pixel_objects = []
-        for pixel in pixels:
-            color = get_color_id(pixel['old_color'])[1]
-            position = {'x': int(coords[0] + pixel['x']), 'y': int(coords[1] + pixel['y'])}
-            pixel_objects.append({color: position})
+        api_tiles = self.get_tiles_from_api(api_image)
+        commands = []
 
-        colors, coords = self.convert_to_api(pixel_objects)
-        command = f"```js\nfixPixels({json.dumps(colors)}, {json.dumps(coords)})\n```"
-        return command
+        for pixel in pixels:
+            # Posición absoluta del píxel
+            abs_x = coords[0] + pixel['x']
+            abs_y = coords[1] + pixel['y']
+
+            # Color
+            r, g, b, a = pixel["new_color"]
+            _, color_idx = get_color_id(pixel["new_color"])
+
+            # Pixel relativo al tile
+            pixel_x, pixel_y = pixel["x"], pixel["y"]
+
+            cmd = (
+                f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({pixel_x},{pixel_y});s=0", {{\n'
+                f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
+                f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'
+                f'    "pixel": [{abs_x}, {abs_y}],\n'
+                f'    "season": 0,\n'
+                f'    "colorIdx": {color_idx}\n'
+                f'}});'
+            )
+            commands.append(cmd)
+
+        return "```js\n" + "\n".join(commands) + "\n```"
 
     def paint(self, url: str, pixels: List[Pixel]) -> None:
         """
@@ -262,7 +297,7 @@ class WPlace:
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} de {old_color_name}(id: {old_color_id}) a {new_color_name}(id: {new_color_id})")
             self.send_alert(
                 "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
-                self.generate_command(changed, coords),
+                self.generate_command(changed, coords, api_image),
                 good_image_path,
                 new_image_path
             )

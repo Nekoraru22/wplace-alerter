@@ -8,7 +8,6 @@ import datetime
 import numpy as np
 
 from PIL import Image
-from enum import Enum
 from selenium import webdriver
 from typing import List, Dict, Tuple
 
@@ -19,14 +18,7 @@ from data.colors import Color, get_color_id
 
 init(autoreset=True)
 
-# Van en orden literalmente xD
-class ColorType(Enum):
-    BLACK = 1
-    GRAY = 4
-    PINK = 28
-
-Color = ColorType               # RGB color
-Position = Dict[str, int]       # {'x': int, 'y': int}
+Position = Dict[str, int]
 Pixel = Dict[Color, Position]
 
 
@@ -226,7 +218,7 @@ class WPlace:
             return []
 
         diff = cv2.absdiff(image1, image2)
-        ys, xs = np.where(np.any(diff != 0, axis=2))
+        ys, xs = np.nonzero(np.any(diff != 0, axis=2))
 
         changed = []
         for x, y in zip(xs, ys):
@@ -315,7 +307,14 @@ class WPlace:
         """
         discord_webhook_url = arts_data["discord_webhook_url"]
         files = {}
-        payload = {"content": message}
+
+        # If message too long, create a file and upload it
+        if len(message) > 2000:
+            with open("data/command.js", "w") as f:
+                f.write(message)
+            payload = {"content": "El mensaje es demasiado largo, se ha guardado en un archivo.", "file": open("data/command.js", "rb")}
+        else:
+            payload = {"content": message}
 
         if image_path1 and os.path.exists(image_path1):
             try:

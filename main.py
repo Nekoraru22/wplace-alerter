@@ -121,7 +121,7 @@ class WPlace:
             )
             commands.append(cmd)
 
-        return "```js\n" + "\n".join(commands) + "\n```"
+        return "\n".join(commands)
 
     def paint(self, url: str, pixels: List[Pixel]) -> None:
         """
@@ -285,7 +285,7 @@ class WPlace:
                 old_color_name, old_color_id = get_color_id(pixel['old_color'])
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} de {old_color_name}(id: {old_color_id}) a {new_color_name}(id: {new_color_id})")
             self.send_alert(
-                "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n" +
+                "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n",
                 self.generate_command(changed, coords, api_image),
                 good_image_path,
                 new_image_path
@@ -296,7 +296,7 @@ class WPlace:
         else:
             print(Fore.LIGHTGREEN_EX + "No se detectaron cambios en los píxeles.")
 
-    def send_alert(self, message: str, image_path1: str, image_path2: str) -> None:
+    def send_alert(self, message: str, command: str, image_path1: str, image_path2: str) -> None:
         """
         Sends an alert message with attached images to a Discord webhook.
 
@@ -308,13 +308,14 @@ class WPlace:
         discord_webhook_url = arts_data["discord_webhook_url"]
         files = {}
 
-        # If message too long, create a file and upload it
-        if len(message) > 2000:
+        # If message is too long, create a file and upload it
+        if len(message + command) > 2000:
             with open("data/command.js", "w") as f:
-                f.write(message)
-            payload = {"content": "El mensaje es demasiado largo, se ha guardado en un archivo.", "file": open("data/command.js", "rb")}
-        else:
+                f.write(command)
             payload = {"content": message}
+            files["file3"] = (os.path.basename("data/command.js"), open("data/command.js", "rb"))
+        else:
+            payload = {"content": message + f"```js\n{command}\n```"}
 
         if image_path1 and os.path.exists(image_path1):
             try:

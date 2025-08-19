@@ -101,7 +101,7 @@ class WPlace:
         api_tiles = self.get_tiles_from_api(api_image)
         commands = []
 
-        for pixel in pixels:
+        for i, pixel in enumerate(pixels):
             # Posición absoluta del píxel
             abs_x = coords[0] + pixel['x']
             abs_y = coords[1] + pixel['y']
@@ -111,6 +111,7 @@ class WPlace:
             _, color_idx = get_color_id(pixel["old_color"])
 
             cmd = (
+                f'// {i}/{len(pixels)}\n'
                 f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'
                 f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
                 f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'
@@ -279,13 +280,13 @@ class WPlace:
         # Check for changes
         if not self.compare_image(good_image_path, new_image_path):
             changed = self.get_changed_pixels(good_image_path, new_image_path)
-            print(Fore.LIGHTRED_EX + "¡ALERTA! Algún pixel ha cambiado!!! :<")
+            print(Fore.LIGHTRED_EX + f"¡ALERTA! Han cambiado {len(changed)} píxeles!!! :<")
             for pixel in changed:
                 new_color_name, new_color_id = get_color_id(pixel['new_color'])
                 old_color_name, old_color_id = get_color_id(pixel['old_color'])
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} de {old_color_name}(id: {old_color_id}) a {new_color_name}(id: {new_color_id})")
             self.send_alert(
-                "# ¡ALERTA! Algún pixel ha cambiado!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n",
+                f"# ¡ALERTA! Han cambiado {len(changed)} píxeles!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n",
                 self.generate_command(changed, coords, api_image),
                 good_image_path,
                 new_image_path
@@ -378,7 +379,7 @@ def main(arts_data: dict):
 
 
 if __name__ == "__main__":
-    # Read data
+    # Read data config
     with open('data/arts.json') as f:
         arts_data = json.load(f)
     main(arts_data)

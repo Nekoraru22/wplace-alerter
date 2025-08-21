@@ -13,6 +13,8 @@ from typing import List, Dict, Tuple
 
 from colorama import Fore, init
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import TimeoutException
+from trio import Path
 
 from data.colors import Color, get_color_id
 
@@ -49,6 +51,9 @@ class WPlace:
         options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
         self.driver = webdriver.Chrome(options=options)
 
+        # Config
+        self.driver.set_page_load_timeout(15) # TimeoutException if page takes too long to load
+
     def __del__(self):
         self.driver.quit()
 
@@ -71,9 +76,9 @@ class WPlace:
                 coords.append(position['y'])
         return colors, coords
 
-    def get_tiles_from_api(self, api_image: str) -> Tuple[int, int]:
+    def get_tiles_from_api_url(self, api_image: str) -> Tuple[int, int]:
         """
-        Get tile information from the API.
+        Get tile information from the API url.
 
         Args:
             api_image: The API image URL
@@ -98,7 +103,7 @@ class WPlace:
         Returns:
             str: The generated js command
         """
-        api_tiles = self.get_tiles_from_api(api_image)
+        api_tiles = self.get_tiles_from_api_url(api_image)
         commands = []
 
         for i, pixel in enumerate(pixels):
@@ -166,67 +171,79 @@ class WPlace:
         # Save the cropped image
         cropped_image.save(image_path)
 
-    def compare_image(self, good: str, new: str, threshold: float = 0.0) -> bool:
+    def compare_image(self, path: str, threshold: float = 0.0) -> bool:
         """
         Compares two images and returns True if they are similar within a certain threshold.
 
         Args:
-            good: Path to the "good" image
-            new: Path to the "new" image
+            path: Base path for the images
             threshold: Similarity threshold (lower is more strict)
 
         Returns:
             bool: True if images are similar, False otherwise
         """
         # Load images with alpha channel to consider transparency differences
-        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
-        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
+        good = cv2.imread(f"{path}good.png", cv2.IMREAD_UNCHANGED)
+        new = cv2.imread(f"{path}new.png", cv2.IMREAD_UNCHANGED)
+        original = cv2.imread(f"{path}original.png", cv2.IMREAD_UNCHANGED)
 
         # Check if images are loaded successfully
-        if image1 is None or image2 is None:
-            print(Fore.LIGHTRED_EX + "Error: Could not read one or both image files.")
+        if good is None or new is None or original is None:
+            print(Fore.LIGHTRED_EX + "Error: Could not read one or more image files.")
             return False
 
         # Ensure images have the same dimensions
-        if image1.shape != image2.shape:
-            print(Fore.LIGHTRED_EX + f"Error: Image dimensions do not match. Image1: {image1.shape}, Image2: {image2.shape}")
+        if good.shape != new.shape:
+            print(Fore.LIGHTRED_EX + f"Error: Image dimensions do not match. Good: {good.shape}, New: {new.shape}")
             return False # Cannot compare pixel by pixel if dimensions differ
 
-        # Calculate the Mean Squared Error (MSE) across all channels
-        diff = image1.astype("float") - image2.astype("float")
+        # Calculate the Mean Squared Error (MSE) across all channels between good and new
+        diff = good.astype("float") - new.astype("float")
         err = np.mean(diff ** 2)
-        return bool(err <= threshold)
 
-    def get_changed_pixels(self, good: str, new: str) -> List[Dict[str, Dict[str, int]]]:
+        # Calculate the MSE between original and new to check if new image is restored
+        diff_2 = original.astype("float") - new.astype("float")
+        err_2 = np.mean(diff_2 ** 2)
+        if err > threshold and err_2 <= threshold:
+            print(Fore.LIGHTGREEN_EX + "La imagen ha sido restaurada. ")
+            with open(f"{path}good.png", 'wb') as f:
+                f.write(open(f"{path}new.png", 'rb').read())
+        elif err <= threshold and err_2 <= threshold:
+            print(Fore.LIGHTGREEN_EX + "No se detectaron cambios en los píxeles.")
+
+        return bool(err <= threshold) or bool(err_2 <= threshold)
+
+    def get_changed_pixels(self, path: str) -> List[Dict[str, Dict[str, int]]]:
         """
         Locate pixels that differ between two images.
 
         Args:
-            good: Path to the reference image.
-            new: Path to the new image to compare.
+            path: Base path for the images
 
         Returns:
             List of dictionaries with the x, y coordinates and RGBA color of the
             changed pixels in the new image.
         """
-        image1 = cv2.imread(good, cv2.IMREAD_UNCHANGED)
-        image2 = cv2.imread(new, cv2.IMREAD_UNCHANGED)
+        good = cv2.imread(f"{path}good.png", cv2.IMREAD_UNCHANGED)
+        new = cv2.imread(f"{path}new.png", cv2.IMREAD_UNCHANGED)
 
-        if image1 is None or image2 is None:
+        # Check if images are loaded successfully
+        if good is None or new is None:
             return []
 
-        if image1.shape != image2.shape:
+        # Check if good and new have the same dimensions
+        if good.shape != new.shape:
             return []
 
-        diff = cv2.absdiff(image1, image2)
+        diff = cv2.absdiff(good, new)
         ys, xs = np.nonzero(np.any(diff != 0, axis=2))
 
         changed = []
         for x, y in zip(xs, ys):
-            pixel = image2[y, x]
+            pixel = new[y, x]
             b, g, r, a = pixel
             new_color = (int(r), int(g), int(b), int(a))
-            old_color = (int(image1[y, x][2]), int(image1[y, x][1]), int(image1[y, x][0]), int(image1[y, x][3]))
+            old_color = (int(good[y, x][2]), int(good[y, x][1]), int(good[y, x][0]), int(good[y, x][3]))
             changed.append({
                 "x": int(x),
                 "y": int(y),
@@ -235,17 +252,21 @@ class WPlace:
             })
         return changed
 
-    def check_change(self, api_image: str, coords: Tuple[int, int, int, int], good_image_path: str, new_image_path: str) -> None:
+    def check_change(self, api_image: str, coords: Tuple[int, int, int, int], path: str) -> None:
         """
         Downloads the new image and checks for changes against the last image.
 
         Args:
             api_image: URL of the API image
             coords: Coordinates for cropping the image
-            good_image_path: Path to the "good" image
-            new_image_path: Path to the "new" image
+            path: Base path for saving images
         """
-        self.driver.get(api_image)
+        try:
+            self.driver.get(api_image)
+        except TimeoutException as e:
+            print(Fore.LIGHTRED_EX + f"Error: {e}\n\nWaiting for 5 minutes...")
+            time.sleep(5*60) # Wait 5 minutes
+            return
 
         # Get network logs and download the image
         logs = self.driver.get_log("performance")
@@ -263,23 +284,25 @@ class WPlace:
                     # Decode and save
                     import base64
                     image_data = base64.b64decode(response_body["body"])
-                    with open(new_image_path, 'wb') as file:
+                    with open(f"{path}new.png", 'wb') as file:
                         file.write(image_data)
                     break
 
         # Crop the image
-        self.crop_image(new_image_path, coords)
+        self.crop_image(f"{path}new.png", coords)
 
         # Check if good image exists
-        if not os.path.exists(good_image_path):
+        if not os.path.exists(f"{path}good.png"):
             print(Fore.LIGHTYELLOW_EX + "No se encontró la imagen buena, guardando la nueva imagen como buena.")
-            with open(good_image_path, 'wb') as f:
-                f.write(open(new_image_path, 'rb').read())
+            with open(f"{path}original.png", 'wb') as f:
+                f.write(open(f"{path}new.png", 'rb').read())
+            with open(f"{path}good.png", 'wb') as f:
+                f.write(open(f"{path}new.png", 'rb').read())
             return
 
         # Check for changes
-        if not self.compare_image(good_image_path, new_image_path):
-            changed = self.get_changed_pixels(good_image_path, new_image_path)
+        if not self.compare_image(path):
+            changed = self.get_changed_pixels(path)
             print(Fore.LIGHTRED_EX + f"¡ALERTA! Han cambiado {len(changed)} píxeles!!! :<")
             for pixel in changed:
                 new_color_name, new_color_id = get_color_id(pixel['new_color'])
@@ -288,14 +311,12 @@ class WPlace:
             self.send_alert(
                 f"# ¡ALERTA! Han cambiado {len(changed)} píxeles!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n",
                 self.generate_command(changed, coords, api_image),
-                good_image_path,
-                new_image_path
+                f"{path}good.png",
+                f"{path}new.png"
             )
             # Replace the new image with the good image
-            with open(good_image_path, 'wb') as f:
-                f.write(open(new_image_path, 'rb').read())
-        else:
-            print(Fore.LIGHTGREEN_EX + "No se detectaron cambios en los píxeles.")
+            with open(f"{path}good.png", 'wb') as f:
+                f.write(open(f"{path}new.png", 'rb').read())
 
     def send_alert(self, message: str, command: str, image_path1: str, image_path2: str) -> None:
         """
@@ -370,7 +391,7 @@ def main(arts_data: dict):
                 os.makedirs(path, exist_ok=True)
 
                 # Check for changes
-                wplace.check_change(api_image, coords, f'{path}good.png', f'{path}new.png')
+                wplace.check_change(api_image, coords, path)
                 time.sleep(5)
         except Exception as e:
             print(f"Error: {e}")

@@ -39,3 +39,17 @@ To get the coordinates for the art piece you want to track, follow these steps:
 
 It's important to note that the final coordinates should include an additional pixel.
 ![Photoshop 2](images/photoshop2.png)
+
+## How to semi-auto fix
+
+1. Open "Sources" in the browser's developer tools.
+2. Ctrl + Shift + F and search for `o.set(`
+3. Click on the last and put a breakpoint on the line.
+4. Select a pixel to paint, the debugger will pause on the breakpoint.
+5. Go to the console and paste the discord fixer command.
+6. Resume the debugger.
+7. Click on paint.
+
+# TO DO
+- [ ] Find a way to avoid using the debugger on the autofixer.
+- [ ] A js command to get the user number of pixels available to paint and use only that pixels returning the remaining ones.

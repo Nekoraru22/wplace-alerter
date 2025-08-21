@@ -14,7 +14,6 @@ from typing import List, Dict, Tuple
 from colorama import Fore, init
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
-from trio import Path
 
 from data.colors import Color, get_color_id
 

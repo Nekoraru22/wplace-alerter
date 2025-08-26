@@ -116,6 +116,11 @@ class WPlace:
             r, g, b, a = pixel["old_color"]
             _, color_idx = get_color_id(pixel["old_color"])
 
+            # Avoid paid color pixels
+            if not color_idx or color_idx >= 32:
+                print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {i+1}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
+                continue
+
             cmd = (
                 f'// {i+1}/{len(pixels)}\n'
                 f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'

@@ -56,54 +56,10 @@ class WPlace:
     def __del__(self):
         self.driver.quit()
 
-    def image_to_pixels(self, image_path: str) -> List[Pixel]:
-        """
-        Convert an image to a list of pixels.
-
-        Args:
-            image_path: Path to the image file.
-
-        Returns:
-            List of pixels extracted from the image.
-        """
-        try:
-            image = Image.open(image_path)
-
-            if image.mode != 'RGBA':
-                image = image.convert('RGBA')
-            
-            width, height = image.size
-            img_array = np.array(image)
-            
-            pixels = []
-            for y in range(height):
-                for x in range(width):
-                    r, g, b, a = img_array[y, x]
-                    color = (int(r), int(g), int(b), int(a))
-                    
-                    # Skip transparent pixels
-                    if a == 0:
-                        continue
-                    
-                    color_name, color_id = get_color_id(color)
-                    
-                    pixel = {
-                        color_id: {
-                            'x': x,
-                            'y': y
-                        }
-                    }
-
-                    pixels.append(pixel)
-            
-            return pixels
-            
-        except Exception as e:
-            print(Fore.LIGHTRED_EX + f"Error processing image {image_path}: {e}")
-            return []
-
     def convert_to_api(self, pixels: List[Pixel]) -> Tuple[List[int], List[int]]:
         """
+        DEPRECATED
+
         Convert pixel data to API format.
 
         Args:
@@ -138,7 +94,7 @@ class WPlace:
             return (tile_x, tile_y)
         return (0, 0)
 
-    def generate_command(self, pixels, coords: Tuple[int, int, int, int], api_image: str) -> str:
+    def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], api_image: str) -> str:
         """
         Generate a js command to fix the pixels
 
@@ -390,10 +346,6 @@ class WPlace:
 
 def main(arts_data: dict):
     wplace = WPlace()
-    # picheles = wplace.image_to_pixels("image.png")
-    # with open("data/picheles.json", "w", encoding="utf-8") as f:
-    #     json.dump(picheles, f, ensure_ascii=False, indent=4)
-    # return
 
     while True:
         time_info = datetime.datetime.now().isoformat()

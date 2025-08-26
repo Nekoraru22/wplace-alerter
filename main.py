@@ -107,7 +107,8 @@ class WPlace:
         api_tiles = self.get_tiles_from_api_url(api_image)
         commands = []
 
-        for i, pixel in enumerate(pixels):
+        counter = 1
+        for pixel in pixels:
             # Posición absoluta del píxel
             abs_x = coords[0] + pixel['x']
             abs_y = coords[1] + pixel['y']
@@ -117,12 +118,12 @@ class WPlace:
             _, color_idx = get_color_id(pixel["old_color"])
 
             # Avoid paid color pixels
-            if not color_idx or color_idx >= 32:
-                print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {i+1}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
+            if color_idx == None or color_idx >= 32:
+                print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
                 continue
 
             cmd = (
-                f'// {i+1}/{len(pixels)}\n'
+                f'// {counter}/{len(pixels)}\n'
                 f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'
                 f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
                 f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'
@@ -132,6 +133,7 @@ class WPlace:
                 f'}});'
             )
             commands.append(cmd)
+            counter += 1
 
         return "\n".join(commands)
 

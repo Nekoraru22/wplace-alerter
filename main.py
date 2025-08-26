@@ -56,6 +56,52 @@ class WPlace:
     def __del__(self):
         self.driver.quit()
 
+    def image_to_pixels(self, image_path: str) -> List[Pixel]:
+        """
+        Convert an image to a list of pixels.
+
+        Args:
+            image_path: Path to the image file.
+
+        Returns:
+            List of pixels extracted from the image.
+        """
+        try:
+            image = Image.open(image_path)
+
+            if image.mode != 'RGBA':
+                image = image.convert('RGBA')
+            
+            width, height = image.size
+            img_array = np.array(image)
+            
+            pixels = []
+            for y in range(height):
+                for x in range(width):
+                    r, g, b, a = img_array[y, x]
+                    color = (int(r), int(g), int(b), int(a))
+                    
+                    # Skip transparent pixels
+                    if a == 0:
+                        continue
+                    
+                    color_name, color_id = get_color_id(color)
+                    
+                    pixel = {
+                        color_id: {
+                            'x': x,
+                            'y': y
+                        }
+                    }
+
+                    pixels.append(pixel)
+            
+            return pixels
+            
+        except Exception as e:
+            print(Fore.LIGHTRED_EX + f"Error processing image {image_path}: {e}")
+            return []
+
     def convert_to_api(self, pixels: List[Pixel]) -> Tuple[List[int], List[int]]:
         """
         Convert pixel data to API format.
@@ -115,7 +161,7 @@ class WPlace:
             _, color_idx = get_color_id(pixel["old_color"])
 
             cmd = (
-                f'// {i}/{len(pixels)}\n'
+                f'// {i+1}/{len(pixels)}\n'
                 f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'
                 f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
                 f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'
@@ -127,31 +173,6 @@ class WPlace:
             commands.append(cmd)
 
         return "\n".join(commands)
-
-    def paint(self, url: str, pixels: List[Pixel]) -> None:
-        """
-        NOT WORKING -> Cloudflare protection
-        Function that paints a pixel by API
-
-        Args:
-            pixels: List of pixels to paint
-        """
-        colors, coords = self.convert_to_api(pixels)
-        data = {"colors": colors, "coords": coords}
-        response = requests.post(url, headers=self.headers, json=data)
-        print(response.json())
-
-    def check_pixel(self, url: str, position: Position) -> None:
-        """
-        NOT WORKING -> Cloudflare protection
-        Gets info about a pixel.
-
-        Args:
-            position: The position of the pixel to check.
-        """
-        url = f'{url}?x={position["x"]}&y={position["y"]}'
-        response = requests.get(url, headers=self.headers)
-        print(response.json())
 
     def crop_image(self, image_path: str, crop_box: Tuple[int, int, int, int]) -> None:
         """
@@ -207,7 +228,7 @@ class WPlace:
             print(Fore.LIGHTGREEN_EX + "La imagen ha sido restaurada. ")
             with open(f"{path}good.png", 'wb') as f:
                 f.write(open(f"{path}new.png", 'rb').read())
-        elif err <= threshold and err_2 <= threshold:
+        else: # Temporal fix?
             print(Fore.LIGHTGREEN_EX + "No se detectaron cambios en los píxeles.")
 
         return bool(err <= threshold) or bool(err_2 <= threshold)
@@ -369,6 +390,11 @@ class WPlace:
 
 def main(arts_data: dict):
     wplace = WPlace()
+    # picheles = wplace.image_to_pixels("image.png")
+    # with open("data/picheles.json", "w", encoding="utf-8") as f:
+    #     json.dump(picheles, f, ensure_ascii=False, indent=4)
+    # return
+
     while True:
         time_info = datetime.datetime.now().isoformat()
         print(f"▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ {time_info} ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬")

@@ -118,7 +118,11 @@ class WPlace:
             _, color_idx = get_color_id(pixel["old_color"])
 
             # Avoid paid color pixels
-            if color_idx == None or color_idx >= 32:
+            if color_idx == None:
+                if pixel["old_color"][3] != 0:
+                    print(Fore.LIGHTRED_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color")
+                continue
+            elif color_idx >= 32:
                 print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
                 continue
 

@@ -26,23 +26,6 @@ Pixel = Dict[Color, Position]
 class WPlace:
 
     def __init__(self):
-        self.headers = {
-            'Host': 'backend.wplace.live',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0',
-            'Accept': 'image/webp,*/*',
-            'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
-            'Accept-Encoding': 'gzip, deflate, br, zstd',
-            'Referer': 'https://wplace.live/',
-            'Origin': 'https://wplace.live',
-            'Connection': 'keep-alive',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-site',
-            'Priority': 'u=4',
-            'TE': 'trailers'
-        }
-
-        # Load image with Selenium
         options = Options()
         options.add_argument("--disable-logging")
         options.add_argument("--log-level=3")
@@ -51,7 +34,7 @@ class WPlace:
         self.driver = webdriver.Chrome(options=options)
 
         # Config
-        self.driver.set_page_load_timeout(15) # TimeoutException if page takes too long to load
+        self.driver.set_page_load_timeout(time_to_wait=20) # TimeoutException if page takes too long to load
 
     def __del__(self):
         self.driver.quit()
@@ -94,6 +77,7 @@ class WPlace:
             return (tile_x, tile_y)
         return (0, 0)
 
+    # TODO: Move to JS and generate the minimum size command that it builds itself
     def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], api_image: str) -> str:
         """
         Generate a js command to fix the pixels
@@ -381,6 +365,9 @@ def main(arts_data: dict):
                 # Check for changes
                 wplace.check_change(api_image, coords, path)
                 time.sleep(5)
+        except KeyboardInterrupt:
+            print("Detected Ctrl + C")
+            break
         except Exception as e:
             print(f"Error: {e}")
         time.sleep(arts_data["cooldown"])

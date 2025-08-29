@@ -195,7 +195,7 @@ class WPlace:
             print(Fore.LIGHTGREEN_EX + "La imagen ha sido restaurada. ")
             with open(f"{path}good.png", 'wb') as f:
                 f.write(open(f"{path}new.png", 'rb').read())
-        else: # Temporal fix?
+        elif err <= threshold and err_2 <= threshold: # TODO: check restore
             print(Fore.LIGHTGREEN_EX + "No se detectaron cambios en los píxeles.")
 
         return bool(err <= threshold) or bool(err_2 <= threshold)

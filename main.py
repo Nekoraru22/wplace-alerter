@@ -111,7 +111,7 @@ class WPlace:
                 continue
 
             cmd = (
-                f'// {counter}/{len(pixels)}\n'
+                f'// {counter}\n'
                 f'o.set("t=({api_tiles[0]},{api_tiles[1]});p=({abs_x},{abs_y});s=0", {{\n'
                 f'    "color": {{ "r": {r}, "g": {g}, "b": {b}, "a": {a} }},\n'
                 f'    "tile": [{api_tiles[0]}, {api_tiles[1]}],\n'

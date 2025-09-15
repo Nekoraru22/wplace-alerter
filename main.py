@@ -98,8 +98,8 @@ class WPlace:
             abs_y = coords[1] + pixel['y']
 
             # Color
-            r, g, b, a, owned = pixel["old_color"]
-            _, color_idx = get_color_id(pixel["old_color"])
+            r, g, b, a = pixel["old_color"]
+            _, color_idx, owned = get_color_id(pixel["old_color"])
 
             # Avoid paid color pixels
             if color_idx == None:
@@ -225,7 +225,7 @@ class WPlace:
                 "x": int(x),
                 "y": int(y),
                 "new_color": new_color,
-                "old_color": old_color
+                "old_color": old_color,
             })
         return changed
 
@@ -282,8 +282,8 @@ class WPlace:
             changed = self.get_changed_pixels(path)
             print(Fore.LIGHTRED_EX + f"¡ALERTA! Han cambiado {len(changed)} píxeles!!! :<")
             for pixel in changed:
-                new_color_name, new_color_id = get_color_id(pixel['new_color'])
-                old_color_name, old_color_id = get_color_id(pixel['old_color'])
+                new_color_name, new_color_id, _ = get_color_id(pixel['new_color'])
+                old_color_name, old_color_id, _ = get_color_id(pixel['old_color'])
                 print(Fore.LIGHTRED_EX + f"    Pixel cambiado en X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} de {old_color_name}(id: {old_color_id}) a {new_color_name}(id: {new_color_id})")
             self.send_alert(
                 f"# ¡ALERTA! Han cambiado {len(changed)} píxeles!!! :< (Antes, después)\n\n## Comando para arreglar los píxeles:\n",

@@ -210,3 +210,5 @@ __marimo__/
 data/*/
 data/arts.json
 data/command.js
+data/input.json
+data/output.js

@@ -98,7 +98,7 @@ class WPlace:
             abs_y = coords[1] + pixel['y']
 
             # Color
-            r, g, b, a = pixel["old_color"]
+            r, g, b, a, owned = pixel["old_color"]
             _, color_idx = get_color_id(pixel["old_color"])
 
             # Avoid paid color pixels
@@ -106,7 +106,7 @@ class WPlace:
                 if pixel["old_color"][3] != 0:
                     print(Fore.LIGHTRED_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color")
                 continue
-            elif color_idx >= 32:
+            elif not owned:
                 print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
                 continue
 
@@ -213,6 +213,10 @@ class WPlace:
 
         changed = []
         for x, y in zip(xs, ys):
+            # Dont check transparent pixels on original image
+            if good[y, x][3] == 0:
+                continue
+
             pixel = new[y, x]
             b, g, r, a = pixel
             new_color = (int(r), int(g), int(b), int(a))

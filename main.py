@@ -214,8 +214,8 @@ class WPlace:
         changed = []
         for x, y in zip(xs, ys):
             # Dont check transparent pixels on original image
-            if good[y, x][3] == 0:
-                continue
+            # if good[y, x][3] == 0:
+            #     continue
 
             pixel = new[y, x]
             b, g, r, a = pixel

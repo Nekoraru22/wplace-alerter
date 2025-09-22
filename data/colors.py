@@ -73,9 +73,9 @@ COLOR_LIST = list(Color)
 def get_color_id(rgb):
     rgb_tuple = tuple(rgb)
     for idx, color in enumerate(COLOR_LIST):
-        if color.value == rgb_tuple:
-            return color.name, idx
-    return None, None
+        if color.value[:4] == rgb_tuple:
+            return color.name, idx, color.value[4]
+    return None, None, None
 
 # Ejemplo
 # name, id_ = get_color_id([237, 28, 36, 255])

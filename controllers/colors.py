@@ -1,4 +1,8 @@
+import json
 from enum import Enum
+from traceback import print_tb
+from turtle import color
+
 
 class Color(Enum):
     TRANSPARENT     = (0, 0, 0, 0, True)
@@ -67,16 +71,73 @@ class Color(Enum):
     LIGHT_STONE     = (205, 197, 158, 255, False)
 
 
-# Lista en el orden exacto
-COLOR_LIST = list(Color)
+class ColorConfig:
+    def __init__(self, config_file='data/color_config.json'):
+        self.config_file = config_file
+        self._overrides = {}
+        self.load_config()
 
+    def load_config(self):
+        """Loads configuration from a JSON file"""
+        try:
+            with open(self.config_file, 'r') as f:
+                self._overrides = json.load(f)
+        except FileNotFoundError:
+            self._overrides = {}
+    
+    def save_config(self):
+        """Saves the current configuration to a JSON file"""
+        with open(self.config_file, 'w') as f:
+            json.dump(self._overrides, f, indent=2)
+    
+    def get_bool(self, color_name):
+        """Gets the bool of a color, using override if it exists"""
+        if color_name in self._overrides:
+            return self._overrides[color_name]
+        return Color[color_name].value[4]
+    
+    def get_rgb(self, color_name):
+        """Gets the RGB of a color"""
+        return Color[color_name].value[:3]
+    
+    def set_bool(self, color_name, value):
+        """Sets the bool of a color"""
+        self._overrides[color_name] = value
+    
+    def reset(self, color_name=None):
+        """Resets to default values"""
+        if color_name:
+            self._overrides.pop(color_name, None)
+        else:
+            self._overrides = {}
+
+
+# Instance a global configuration instance
+color_config = ColorConfig()
+
+
+# List in exact order
 def get_color_id(rgb):
     rgb_tuple = tuple(rgb)
-    for idx, color in enumerate(COLOR_LIST):
+    for idx, color in enumerate(list(Color)):
         if color.value[:4] == rgb_tuple:
-            return color.name, idx, color.value[4]
+            return color.name, idx, color_config.get_bool(color.name)
     return None, None, None
 
-# Ejemplo
-# name, id_ = get_color_id([237, 28, 36, 255])
-# print(name, id_)  # RED 7
+
+# if __name__ == "__main__":
+#     # See original values
+#     name, id_, enabled = get_color_id([237, 28, 36, 255])
+#     print(f"{name} {id_} enabled={enabled}")  # RED 7 enabled=True
+    
+#     # Change config
+#     color_config.set_bool('RED', False)
+#     color_config.save_config()
+    
+#     # See modified value
+#     name, id_, enabled = get_color_id([237, 28, 36, 255])
+#     print(f"{name} {id_} enabled={enabled}")  # RED 7 enabled=False
+    
+#     # Reset
+#     color_config.reset('RED')
+#     color_config.save_config()

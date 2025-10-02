@@ -38,7 +38,7 @@ def convert_array_to_oset(input_data):
     
     return '\n'.join(output_lines)
 
-# Alternative: Read from file and convert
+# Read from file and convert
 def convert_from_file(filename):
     """
     Read JSON array from file and convert to o.set() format
@@ -54,7 +54,7 @@ def convert_from_file(filename):
         print(f"Error parsing JSON from file: {e}")
         return ""
 
-# Alternative: Save output to file
+# Save output to file
 def convert_and_save(input_data, output_filename):
     """
     Convert data and save to file
@@ -63,6 +63,5 @@ def convert_and_save(input_data, output_filename):
         f.write(input_data)
     print(f"Output saved to '{output_filename}'")
 
-# Uncomment these lines to use file operations:
 result = convert_from_file('data/input.json')
 convert_and_save(result, 'data/output.js')

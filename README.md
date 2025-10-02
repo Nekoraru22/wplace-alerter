@@ -9,9 +9,11 @@ This project implements a system to detect modifications to pixel art and instan
 ## How to fill the template
 
 1. **Discord Webhook URL**: Replace `YOUR_DISCORD_WEBHOOK_URL` with your actual Discord webhook URL. This is where the alerts will be sent. [How to create a Discord webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
-2. **Cooldown**: Set the cooldown period (in seconds) for how often to check for changes.
 3. **Arts to Track**: In the `arts` array, add the pixel art files you want to monitor. Each entry should include:
     - **track**: Set to `true` to enable tracking for this art.
+    - **check_transparent_pixels**: Set to `true` to check transparent pixels of the original art for changes.
+    - **last_checked**: The timestamp of the last check.
+    - **griefed**: Set to `true` if the art has been griefed (vandalized).
     - **api_image**: The URL of the image to track.
     - **start_coords**: The starting coordinates of the art in the pixel grid.
     - **end_coords**: The ending coordinates of the art in the pixel grid.
@@ -43,13 +45,6 @@ It's important to note that the final coordinates should include an additional p
 ## How to semi-auto fix
 
 1. Open "Sources" in the browser's developer tools.
-2. Ctrl + Shift + F and search for `o.set(`
-3. Click on the last and put a breakpoint on the line.
-4. Select a pixel to paint, the debugger will pause on the breakpoint.
-5. Go to the console and paste the discord fixer command.
-6. Resume the debugger.
-7. Click on paint.
-
-# TO DO
-- [ ] Find a way to avoid using the debugger on the autofixer.
-- [ ] A js command to get the user number of pixels available to paint and use only that pixels returning the remaining ones.
+2. Install the extension Violentmonkey.
+3. [Install the hook script](TODO)
+4. Go to the console and paste the discord fixer command every time you want to fix an art :3

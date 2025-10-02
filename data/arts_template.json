@@ -1,9 +1,11 @@
 {
     "discord_webhook_url": "",
-    "cooldown": 30,
     "arts": {
         "furritos": {
             "track": true,
+            "check_transparent_pixels": true,
+            "last_checked": "",
+            "griefed": false,
             "api_image": "",
             "start_coords": {
                 "x": 0,
@@ -16,6 +18,9 @@
         },
         "pokemons": {
             "track": false,
+            "check_transparent_pixels": false,
+            "last_checked": "",
+            "griefed": false,
             "api_image": "",
             "start_coords": {
                 "x": 0,

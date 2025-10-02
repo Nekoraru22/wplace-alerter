@@ -209,6 +209,5 @@ __marimo__/
 # Folders in data
 data/*/
 data/arts.json
-data/command.js
-data/input.json
-data/output.js
+data/color_config.json
+.vscode

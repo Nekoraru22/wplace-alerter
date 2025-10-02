@@ -210,4 +210,7 @@ __marimo__/
 data/*/
 data/arts.json
 data/color_config.json
-.vscode
+.vscode/
+
+!data/frontend_build
+!data/arts_template.json

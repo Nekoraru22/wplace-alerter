@@ -67,8 +67,8 @@ def check_project(name):
     return jsonify(message=message, response=response), 200
 
 
-@app.post('/projects/check')
-def check_all_projects():
+@app.post('/projects/check/<cooldown>')
+def check_all_projects(cooldown: int = 2):
     load_arts_data()
     responses = []
     try:
@@ -86,7 +86,7 @@ def check_all_projects():
 
             # Sleep for 5 seconds between checks to avoid rate limiting
             if i < len(ARTS_DATA["arts"]) - 1:
-                time.sleep(5)
+                time.sleep(cooldown)
         return jsonify(message="All projects checked successfully.", response=responses), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
@@ -276,7 +276,7 @@ def main(args: list):
     if len(args) == 1:
         print("Starting server...")
         try:
-            app.run(host='0.0.0.0', port=5000, debug=True)
+            app.run(host='0.0.0.0', port=5000) # , debug=True
         except KeyboardInterrupt:
             print("Detected Ctrl + C")
         except Exception as e:

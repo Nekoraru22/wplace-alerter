@@ -388,6 +388,7 @@ class WPlace:
                 return message, art
             else:
                 print(Fore.LIGHTRED_EX + f"Detected {len(changed)} changed pixels!")
+                message = f"Detected {len(changed)} changed pixels!"
                 art["griefed"] = True
 
             for pixel in changed:
@@ -410,6 +411,8 @@ class WPlace:
                 message = "No changes detected in pixels."
                 print(Fore.LIGHTGREEN_EX + message)
         self.update_project_in_arts_file(art, project, path, logs)
+
+        art["name"] = project
         return message, art
 
     

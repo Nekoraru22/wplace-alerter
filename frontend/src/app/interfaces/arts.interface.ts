@@ -23,6 +23,7 @@ export interface ColorSetting {
 export interface CheckResponse {
   message: string;
   response?: Project;
+  responses?: Project[];
 }
 
 export interface AutomationSettings {

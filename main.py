@@ -88,7 +88,7 @@ def check_all_projects():
             # Sleep for 5 seconds between checks to avoid rate limiting
             if i < len(ARTS_DATA["arts"]) - 1:
                 time.sleep(2)
-        return jsonify(message="All projects checked successfully.", response=responses), 200
+        return jsonify(message="All projects checked successfully.", responses=responses), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
 

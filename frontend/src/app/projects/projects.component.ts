@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalConfig } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
+import { ClipboardModule, Clipboard } from '@angular/cdk/clipboard';
 
 import { ColorSetting, Project } from '../interfaces/arts.interface';
 
@@ -15,13 +16,17 @@ import 'prismjs/components/prism-javascript';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [FormsModule, NgbTooltipModule, CommonModule],
+  imports: [FormsModule, NgbTooltipModule, CommonModule, ClipboardModule],
   providers: [NgbModalConfig, NgbModal],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss'
 })
 export class ProjectsComponent {
-  constructor(public serverService: ServerServiceService, private modalService: NgbModal) { }
+  constructor(
+    public serverService: ServerServiceService,
+    private modalService: NgbModal,
+    private clipboard: Clipboard,
+  ) { }
 
   @ViewChild('codeBlock') codeBlock?: ElementRef;
 
@@ -56,14 +61,17 @@ export class ProjectsComponent {
   checkingAll: boolean = false;
 
   ngOnInit(): void {
-    this.serverService.listProjects().subscribe((data) => {
-      this.artsData = data;
-    });
     this.serverService.getAutomationSettings().subscribe((data) => {
       this.discordWebhook = data.discord_webhook;
       this.cooldownBetweenChecks = data.cooldown_between_checks;
       this.automatedChecks = data.automated_checks;
     });
+
+    // Refresh projects list every 5 seconds
+    this.listProjects();
+    setInterval(() => {
+      this.listProjects();
+    }, 5000);
   }
 
   highlightCode() {
@@ -78,12 +86,41 @@ export class ProjectsComponent {
 		this.toastService.clear();
 	}
 
+  listProjects(): void {
+    this.serverService.listProjects().subscribe({
+      next: (data) => {
+        this.artsData = data;
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+      }
+    });
+  }
+
   checkAllProjects(): void {
     this.toastService.show({ message: "Checking all projects..." });
     this.checkingAll = true;
-    this.serverService.checkAllProjects().subscribe((data) => {
-      this.toastService.show({ message: data.message });
-      this.checkingAll = false;
+    this.serverService.checkAllProjects().subscribe({
+      next: (data) => {
+        this.toastService.show({ message: data.message });
+        this.checkingAll = false;
+
+        if (!data.responses) {
+          return;
+        }
+
+        data.responses.forEach((project: Project) => {
+          const index = this.artsData.findIndex(p => p.name === project.name);
+          console.log("Project checked:", project.name, project);
+          if (index !== -1) {
+            this.artsData[index] = project;
+          }
+        });
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+        this.checkingAll = false;
+      }
     });
   }
 
@@ -323,15 +360,12 @@ export class ProjectsComponent {
 
   copyCode(): void {
     if (this.fixCommand) {
-      navigator.clipboard.writeText(this.fixCommand).then(() => {
-        this.copied = true;
-        setTimeout(() => {
-          this.copied = false;
-        }, 2000);
-      }).catch(err => {
-        console.error('Error copying code:', err);
-        this.toastService.show({ message: 'Failed to copy code' });
-      });
+      this.clipboard.copy(this.fixCommand);
+      this.copied = true;
+      this.toastService.show({ message: 'Code copied to clipboard', classname: 'bg-success text-light' });
+      setTimeout(() => this.copied = false, 1500);
+    } else {
+      this.toastService.show({ message: 'No code to copy', classname: 'bg-warning text-dark' });
     }
   }
 }

@@ -93,6 +93,9 @@ export class ProjectsComponent {
         if (index !== -1) {
           this.artsData[index] = this.selectedProject;
         }
+        if (this.selectedProject) {
+          this.updateProject(this.selectedProject);
+        }
       },
       error: (error: any) => {
         this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
@@ -104,17 +107,7 @@ export class ProjectsComponent {
     this.toastService.show({ message: "Automatic checks toggled:" });
   }
 
-  selectProject(project: Project): void {
-    this.selectedProject = project;
-    this.editedProject = JSON.parse(JSON.stringify(project));
-    this.hasChanges = false;
-
-    if (project.name != this.selectedProject?.name) {
-      this.isImgLoading = true;
-      this.terminalLogs = null;
-      this.fixCommand = null;
-    }
-
+  updateProject(project: Project): void {
     this.serverService.getProjectLogs(project.name).subscribe({
       next: (data) => {
         this.terminalLogs = data.message;
@@ -138,6 +131,20 @@ export class ProjectsComponent {
         }
       });
     }
+  }
+
+  selectProject(project: Project): void {
+    this.selectedProject = project;
+    this.editedProject = JSON.parse(JSON.stringify(project));
+    this.hasChanges = false;
+
+    if (project.name != this.selectedProject?.name) {
+      this.isImgLoading = true;
+      this.terminalLogs = null;
+      this.fixCommand = null;
+    }
+
+    this.updateProject(project);
   }
 
   onProjectChange(): void {
@@ -309,11 +316,7 @@ export class ProjectsComponent {
         }, 2000);
       }).catch(err => {
         console.error('Error copying code:', err);
-        this.toastService.show({ 
-          message: 'Failed to copy code', 
-          classname: 'bg-danger text-light', 
-          delay: 3000 
-        });
+        this.toastService.show({ message: 'Failed to copy code' });
       });
     }
   }

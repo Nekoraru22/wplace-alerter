@@ -221,7 +221,7 @@ def update_automation_info():
     ARTS_DATA["cooldown_between_checks"] = int(data.get("cooldown_between_checks", ARTS_DATA["cooldown_between_checks"]))
 
     save_arts_data()
-    return jsonify(message="Automation information updated successfully."), 200
+    return jsonify(message="Information updated successfully."), 200
 
 
 @app.put('/projects/automation/toggle')

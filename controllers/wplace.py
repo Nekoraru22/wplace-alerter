@@ -337,7 +337,7 @@ class WPlace:
         # Save log to file
         with open(f"{path}changes.log", 'w+') as f:
             f.write(f"[{checked_time}]\n")
-            f.write(logs)
+            f.write(logs if logs != "" else "No changes detected.\n")
 
 
     def check_change(self, project: str) -> tuple[str, WPlaceArtInterface]:

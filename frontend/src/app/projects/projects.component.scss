@@ -1,112 +1,183 @@
-// Dark Purple Neon Color Palette
-$primary-color: #a855f7;      // Vibrant purple
-$secondary-color: #ec4899;    // Hot pink accent
-$accent-color: #8b5cf6;       // Deep violet
-$neon-glow: #d946ef;          // Neon magenta
+// Dark Glass Modern Color Palette
+$primary-color: #6366f1;      // Indigo
+$secondary-color: #8b5cf6;    // Purple
+$accent-color: #06b6d4;       // Cyan
 
-$background-color: #0f0a1e;   // Deep dark purple-black
-$surface-color: #1a1229;      // Slightly lighter surface
-$card-color: #251a3a;         // Card/elevated surface
+$background-color: #0a0a0f;   // Deep dark
+$surface-color: rgba(20, 20, 30, 0.6);      // Glass surface
+$card-color: rgba(30, 30, 45, 0.5);         // Glass card
 
-$text-color: #e9d5ff;         // Light purple text
-$text-secondary: #c084fc;     // Muted purple text
-$text-muted: #9333ea;         // Even more muted
+$text-color: #e2e8f0;         // Light text
+$text-secondary: #94a3b8;     // Muted text
+$text-muted: #64748b;         // More muted
 
-// Neon effects
-$glow-purple: #a855f7;
-$glow-pink: #ec4899;
-$glow-cyan: #06b6d4;          // Cyan accent for contrast
+$border-color: rgba(100, 116, 139, 0.2);
+$glass-border: rgba(255, 255, 255, 0.1);
 
-// States
-$hover-color: #c026d3;
-$active-color: #d946ef;
-$disabled-color: #4a3a5f;
-
-// Borders & shadows
-$border-color: #3b2a54;
-$shadow-glow: 0 0 20px rgba(168, 85, 247, 0.5);
-$shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
+// Glass shadows
+$shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+$shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+$shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
 
 .page {
-  background-color: $background-color;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
   color: $text-color;
   min-height: 100vh;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+.btn {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .btn-outline-primary {
   color: $primary-color;
-  border-color: $primary-color;
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.05);
+  
   &:hover {
-    background-color: $primary-color;
-    color: $background-color;
+    background: rgba(99, 102, 241, 0.15);
+    border-color: $primary-color;
+    color: $primary-color;
     box-shadow: $shadow-glow;
+    transform: translateY(-1px);
   }
 }
 
 .btn-primary {
-  background-color: $primary-color;
-  border-color: $primary-color;
-  color: $background-color;
+  background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  box-shadow: $shadow-glass;
+  
   &:hover {
-    background-color: $hover-color;
-    border-color: $hover-color;
-    box-shadow: $shadow-glow;
+    transform: translateY(-2px);
+    box-shadow: $shadow-glow-strong, $shadow-glass;
   }
+  
   &:active {
-    background-color: $active-color;
-    border-color: $active-color;
-    box-shadow: $shadow-glow-strong;
+    transform: translateY(0);
   }
+  
   &:disabled {
-    background-color: $disabled-color;
-    border-color: $disabled-color;
+    background: rgba(100, 116, 139, 0.3);
+    border-color: $border-color;
     color: $text-muted;
     box-shadow: none;
+    transform: none;
   }
 }
 
 .btn-outline-secondary {
   color: $secondary-color;
-  border-color: $secondary-color;
+  border-color: rgba(139, 92, 246, 0.5);
+  background: rgba(139, 92, 246, 0.05);
+  
   &:hover {
-    background-color: $secondary-color;
-    color: $background-color;
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+    background: rgba(139, 92, 246, 0.15);
+    border-color: $secondary-color;
+    color: $secondary-color;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    transform: translateY(-1px);
   }
 }
 
 .btn-secondary {
-  background-color: $secondary-color;
-  border-color: $secondary-color;
-  color: $background-color;
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: $text-color;
+  backdrop-filter: blur(10px);
+  
   &:hover {
-    background-color: darken($secondary-color, 10%);
-    border-color: darken($secondary-color, 10%);
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+    background: rgba(139, 92, 246, 0.3);
+    border-color: $secondary-color;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+    transform: translateY(-1px);
   }
+  
   &:active {
-    background-color: darken($secondary-color, 20%);
-    border-color: darken($secondary-color, 20%);
-    box-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
+    transform: translateY(0);
   }
+  
   &:disabled {
-    background-color: $disabled-color;
-    border-color: $disabled-color;
+    background: rgba(100, 116, 139, 0.2);
+    border-color: $border-color;
     color: $text-muted;
     box-shadow: none;
   }
 }
 
-.card {
-  background-color: $card-color;
-  border: 1px solid $border-color;
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
-  color: $text-color;
+.btn-danger {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  backdrop-filter: blur(10px);
   
   &:hover {
-    border-color: $primary-color;
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+    color: #fca5a5;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+    transform: translateY(-1px);
+  }
+}
+
+.btn-outline-success {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.05);
+  
+  &:hover {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: #34d399;
+    color: #34d399;
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+  }
+}
+
+.btn-outline-danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.5);
+  background: rgba(248, 113, 113, 0.05);
+  
+  &:hover {
+    background: rgba(248, 113, 113, 0.15);
+    border-color: #f87171;
+    color: #f87171;
+    box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+  }
+}
+
+.card {
+  background: $card-color;
+  backdrop-filter: blur(10px);
+  border: 1px solid $glass-border;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  color: $text-color;
+  box-shadow: $shadow-glass;
+  
+  &:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.2), $shadow-glass;
+    transform: translateY(-2px);
   }
 }
 
@@ -114,20 +185,30 @@ $shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
   color: $text-muted !important;
 }
 
-.project-image {
-  padding-top: 20px;
-  padding-bottom: 20px;
-  width: 100%;
-  max-height: fit-content;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated; /* For pixel art */
+.project-images {
+  background-color: rgba(255, 255, 255, 0.3);
+  border: 1px solid $glass-border;
+  border-radius: 1rem;
+  box-shadow: $shadow-glass;
+  margin-top: 10px;
+
+  .project-image {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    max-height: fit-content;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+  }
 }
+
 
 .terminal-title {
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
   color: $text-color;
+  font-weight: 600;
 }
 
 .terminal-box {
@@ -135,33 +216,86 @@ $shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 
   .terminal-chat {
-    border: 1px solid $border-color;
-    background-color: $surface-color;
-    border-radius: 0.75rem;
+    border: 1px solid $glass-border;
+    background: rgba(10, 10, 20, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
     padding: 1rem;
     font-family: 'Courier New', Courier, monospace;
     font-size: 0.875rem;
     color: $text-secondary;
     overflow-y: auto;
     flex: 1;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
   }
 }
 
 .section {
   width: 100%;
   padding: 30px;
+  position: relative;
+  z-index: 1;
 }
 
 .projects-box {
-  border-right: 1px solid $border-color;
-  background-color: $surface-color;
+  border-right: 1px solid $glass-border;
+  background: $surface-color;
+  backdrop-filter: blur(20px);
 }
 
 .projects-box-buttons {
-  border-top: 1px solid $border-color;
+  border-top: 1px solid $glass-border;
   padding-top: 15px;
+}
+
+h2, h4 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.form-control, .form-check-input {
+  background: rgba(30, 30, 45, 0.5);
+  border: 1px solid $glass-border;
+  color: $text-color;
+  border-radius: 0.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  
+  &:focus {
+    background: rgba(30, 30, 45, 0.7);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    color: $text-color;
+  }
+  
+  &::placeholder {
+    color: $text-muted;
+  }
+}
+
+.modal-content {
+  background: rgba(20, 20, 30, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid $glass-border;
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header, .modal-footer {
+  border-color: $glass-border;
+}
+
+.modal-title {
+  color: $text-color;
+  font-weight: 600;
+}
+
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 
 .colors-grid {
@@ -177,16 +311,34 @@ $shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
   width: 50px; 
   height: 40px; 
   cursor: pointer;
-  border: 1px solid #dee2e6;
-  border-radius: .75rem;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
   display: inline-block;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+  }
 }
 
-.form-check-input:checked + .color-box {
-  border-color: #242424;
-  border-width: 2px;
+.form-check-input:checked {
+  background-color: $primary-color;
+  border-color: $primary-color;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+
+  &::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 8px;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
 }
 
 .status-circle {
@@ -196,6 +348,7 @@ $shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
   display: inline-block;
   margin-right: 8px;
   position: relative;
+  box-shadow: 0 0 10px currentColor;
   animation: pulse 2s ease-in-out infinite;
 
   @keyframes pulse {
@@ -229,20 +382,52 @@ $shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
       opacity: 0.6;
     }
     100% {
-      transform: translate(-50%, -50%) scale(2);
+      transform: translate(-50%, -50%) scale(2.5);
       opacity: 0;
     }
   }
 
   &.status-circle-gray {
-    background-color: gray;
+    background-color: #64748b;
   }
   
   &.status-circle-red {
-    background-color: red;
+    background-color: #ef4444;
   }
   
   &.status-circle-green {
-    background-color: green;
+    background-color: #34d399;
+  }
+  
+  &.hidden {
+    visibility: hidden;
+  }
+}
+
+.alert {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  backdrop-filter: blur(10px);
+  border-radius: 0.5rem;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 30, 45, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 10px;
+  
+  &:hover {
+    background: rgba(99, 102, 241, 0.7);
   }
 }

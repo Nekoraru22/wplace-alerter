@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalConfig } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
-import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import { ColorSetting, Project } from '../interfaces/arts.interface';
 
@@ -32,6 +32,8 @@ export class ProjectsComponent {
     griefed: false
   };
   selectedProject: Project | null = null;
+  editedProject: Project | null = null;
+  hasChanges: boolean = false;
   automaticChecks: boolean = false;
   
 	toastService = inject(ToastServiceService);
@@ -74,28 +76,53 @@ export class ProjectsComponent {
   }
 
   checkProject(project: Project): void {
-    this.serverService.checkProject(project.name).subscribe((data) => {
-      this.toastService.show({ message: data.message });
-      this.selectedProject = data.response!;
-      const index = this.artsData.findIndex(p => p.name === project.name);
-      if (index !== -1) {
-        this.artsData[index] = this.selectedProject;
+    this.serverService.checkProject(project.name).subscribe({
+      next: (data) => {
+        this.toastService.show({ message: data.message });
+        this.selectedProject = data.response!;
+        const index = this.artsData.findIndex(p => p.name === project.name);
+        if (index !== -1) {
+          this.artsData[index] = this.selectedProject;
+        }
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
       }
     });
-  }
-
-  selectProject(project: Project): void {
-    this.selectedProject = project;
   }
 
   checkAllProjectsAutomatically(): void {
     this.toastService.show({ message: "Automatic checks toggled:" });
   }
 
+  selectProject(project: Project): void {
+    this.selectedProject = project;
+    this.editedProject = JSON.parse(JSON.stringify(project));
+    this.hasChanges = false;
+  }
+
+  onProjectChange(): void {
+    if (this.selectedProject && this.editedProject) {
+      this.hasChanges = JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject);
+    }
+  }
+
   saveProjectChanges(): void {
-    if (this.selectedProject) {
-      this.serverService.updateProject(this.selectedProject.name, this.selectedProject).subscribe((data) => {
-        console.log("Project updated:", data);
+    if (this.selectedProject && this.editedProject && this.hasChanges) {
+      this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
+        next: (data) => {
+          console.log("Project updated:", data);
+          Object.assign(this.selectedProject!, this.editedProject!);
+          const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
+          if (index !== -1) {
+            this.artsData[index] = this.selectedProject!;
+          }
+          this.hasChanges = false;
+          this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
+        },
+        error: (error: any) => {
+          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+        }
       });
     }
   }
@@ -106,6 +133,8 @@ export class ProjectsComponent {
         next: (data) => {
           this.artsData = this.artsData.filter(p => p !== project);
           this.selectedProject = null;
+          this.editedProject = null;
+          this.hasChanges = false;
           console.log("Project deleted:", data, data.message);
           this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
         },

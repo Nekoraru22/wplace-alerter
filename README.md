@@ -8,8 +8,10 @@ This project implements a system to detect modifications to pixel art and instan
 
 ## How to fill the template
 
-1. **Discord Webhook URL**: Replace `YOUR_DISCORD_WEBHOOK_URL` with your actual Discord webhook URL. This is where the alerts will be sent. [How to create a Discord webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
-3. **Arts to Track**: In the `arts` array, add the pixel art files you want to monitor. Each entry should include:
+1. **Discord Webhook**: Replace `YOUR_DISCORD_WEBHOOK` with your actual Discord webhook URL. This is where the alerts will be sent. [How to create a Discord webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
+2. **Cooldown Between Checks**: Set the `cooldown_between_checks` value to the desired number of seconds between each check for changes in the pixel art.
+3. **Automated Checks**: Set the `automated_checks` value to `true` to enable automated checks for this art.
+4. **Arts to Track**: In the `arts` array, add the pixel art files you want to monitor. Each entry should include:
     - **track**: Set to `true` to enable tracking for this art.
     - **check_transparent_pixels**: Set to `true` to check transparent pixels of the original art for changes.
     - **last_checked**: The timestamp of the last check.

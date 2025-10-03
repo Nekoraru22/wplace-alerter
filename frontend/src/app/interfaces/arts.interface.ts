@@ -19,3 +19,13 @@ export interface ColorSetting {
   rgb: string;
   enabled: boolean;
 }
+
+export interface CheckResponse {
+  message: string;
+}
+
+export interface AutomationSettings {
+  automated_checks: boolean;
+  discord_webhook: string;
+  cooldown_between_checks: number;
+}

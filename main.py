@@ -18,6 +18,11 @@ def load_arts_data():
     with open('data/arts.json') as file:
         ARTS_DATA = json.load(file)
 
+def save_arts_data():
+    global ARTS_DATA
+    with open('data/arts.json', 'w') as file:
+        json.dump(ARTS_DATA, file, indent=4)
+
 load_arts_data()
 WPLACE = WPlace(ARTS_DATA)
 
@@ -58,15 +63,16 @@ def check_project(name):
     os.makedirs(path, exist_ok=True)
 
     # Check for changes
-    WPLACE.check_change(name)
-    return jsonify(message=f"Checked project {name}"), 200
+    message, response = WPLACE.check_change(name)
+    return jsonify(message=message, response=response), 200
 
 
 @app.post('/projects/check')
 def check_all_projects():
     load_arts_data()
+    responses = []
     try:
-        for name in ARTS_DATA["arts"]:
+        for i, name in enumerate(ARTS_DATA["arts"]):
             if not ARTS_DATA["arts"][name]["track"]:
                 continue
 
@@ -75,11 +81,15 @@ def check_all_projects():
             os.makedirs(path, exist_ok=True)
 
             # Check for changes
-            WPLACE.check_change(name)
-            time.sleep(5)
+            _, response = WPLACE.check_change(name)
+            responses.append(response)
+
+            # Sleep for 5 seconds between checks to avoid rate limiting
+            if i < len(ARTS_DATA["arts"]) - 1:
+                time.sleep(5)
+        return jsonify(message="All projects checked successfully.", response=responses), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
-    return jsonify(message="Checked all projects"), 200
 
 
 @app.put('/projects/<project>/edit')
@@ -186,6 +196,40 @@ def update_colors():
         color_config.set_bool(color_name, enabled)
     color_config.save_config()
     return jsonify(message="Colors updated successfully."), 200
+
+
+@app.get('/projects/automation')
+def get_automation_info():
+    load_arts_data()
+    return jsonify({
+        "discord_webhook": ARTS_DATA["discord_webhook"],
+        "cooldown_between_checks": ARTS_DATA["cooldown_between_checks"],
+        "automated_checks": ARTS_DATA["automated_checks"]
+    }), 200
+
+
+@app.put('/projects/automation')
+def update_automation_info():
+    data = request.json
+    if not data:
+        return jsonify(message="No data provided."), 400
+
+    ARTS_DATA["discord_webhook"] = data.get("discord_webhook", ARTS_DATA["discord_webhook"])
+    ARTS_DATA["cooldown_between_checks"] = int(data.get("cooldown_between_checks", ARTS_DATA["cooldown_between_checks"]))
+
+    save_arts_data()
+    return jsonify(message="Automation information updated successfully."), 200
+
+
+@app.put('/projects/automation/toggle')
+def toggle_automation_checks():
+    data = request.json
+    if not data or "automated_checks" not in data:
+        return jsonify(message="No data provided."), 400
+
+    ARTS_DATA["automated_checks"] = data["automated_checks"]
+    save_arts_data()
+    return jsonify(message=f"Automated checks {'enabled' if data['automated_checks'] else 'disabled'} successfully."), 200
 
 
 def main(args: list):

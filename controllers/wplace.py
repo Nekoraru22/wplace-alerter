@@ -340,7 +340,7 @@ class WPlace:
             f.write(logs)
 
 
-    def check_change(self, project: str) -> None:
+    def check_change(self, project: str) -> tuple[str, WPlaceArtInterface]:
         """
         Downloads the new image and checks for changes against the last image.
 
@@ -359,32 +359,33 @@ class WPlace:
             print(Fore.LIGHTYELLOW_EX + f"Checking art: {Fore.RESET}{project}", end=' -> ')
             self.download_image(api_image, f"{path}new.png")
         except Exception as e:
-            print(Fore.LIGHTRED_EX + f"Error downloading image: {e}")
-            return
+            raise Exception(Fore.LIGHTRED_EX + f"Error downloading image: {e}")
 
         # Crop the image
         self.crop_image(f"{path}new.png", coords)
 
         # Check if original image exists
         if not os.path.exists(f"{path}original.png"):
-            print(Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.")
             with open(f"{path}original.png", 'wb') as f:
                 f.write(open(f"{path}new.png", 'rb').read())
-            return
+            raise Exception(Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.")
 
         # Check for changes
         logs = str()
+        message = ""
         if not self.compare_image(path):
             changed = self.get_changed_pixels(path, project)
             if len(changed) == 0:
                 if art["griefed"]:
-                    print(Fore.LIGHTCYAN_EX + "Pixels restored to original state.")
+                    message = "Pixels restored to original state."
+                    print(Fore.LIGHTCYAN_EX + message)
                     art["griefed"] = False
                 else:
-                    print(Fore.LIGHTGREEN_EX + "No changes detected in pixels.")
+                    message = "No changes detected in pixels."
+                    print(Fore.LIGHTGREEN_EX + message)
 
                 self.update_project_in_arts_file(art, project, path, logs)
-                return
+                return message, art
             else:
                 print(Fore.LIGHTRED_EX + f"Detected {len(changed)} changed pixels!")
                 art["griefed"] = True
@@ -402,11 +403,14 @@ class WPlace:
             )
         else:
             if art["griefed"]:
-                print(Fore.LIGHTCYAN_EX + "Pixels restored to original state.")
+                message = "Pixels restored to original state."
+                print(Fore.LIGHTCYAN_EX + message)
                 art["griefed"] = False
             else:
-                print(Fore.LIGHTGREEN_EX + "No changes detected in pixels.")
+                message = "No changes detected in pixels."
+                print(Fore.LIGHTGREEN_EX + message)
         self.update_project_in_arts_file(art, project, path, logs)
+        return message, art
 
     
     def send_alert(self, message: str, command: str, original_image: str, new_image: str) -> None:

@@ -1,5 +1,7 @@
 {
-    "discord_webhook_url": "",
+    "discord_webhook": "",
+    "cooldown_between_checks": 300,
+    "automated_checks": false,
     "arts": {
         "furritos": {
             "track": true,

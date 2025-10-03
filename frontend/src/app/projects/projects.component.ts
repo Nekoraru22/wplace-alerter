@@ -2,6 +2,8 @@ import { Component, TemplateRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalConfig } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
+import { CommonModule, DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 
 import { ColorSetting, Project } from '../interfaces/arts.interface';
 
@@ -11,7 +13,7 @@ import { ServerServiceService } from '../services/server.service.service';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [FormsModule, NgbTooltipModule],
+  imports: [FormsModule, NgbTooltipModule, CommonModule],
   providers: [NgbModalConfig, NgbModal],
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss'
@@ -37,9 +39,20 @@ export class ProjectsComponent {
 
   colors: ColorSetting[] = [];
 
+  offcanvasService = inject(NgbOffcanvas);
+
+  discordWebhook: string = '';
+  cooldownBetweenChecks: number = 300;
+  automatedChecks: boolean = false;
+
   ngOnInit(): void {
     this.serverService.listProjects().subscribe((data) => {
       this.artsData = data;
+    });
+    this.serverService.getAutomationSettings().subscribe((data) => {
+      this.discordWebhook = data.discord_webhook;
+      this.cooldownBetweenChecks = data.cooldown_between_checks;
+      this.automatedChecks = data.automated_checks;
     });
   }
 
@@ -156,5 +169,26 @@ export class ProjectsComponent {
 
   deselectAllColors(): void {
     this.colors.forEach(color => color.enabled = false);
+  }
+
+  openBottom(content: TemplateRef<any>) {
+		this.offcanvasService.open(content, { position: 'bottom', backdrop: true });
+	}
+
+  updateAutomationSettings(): void {
+    this.serverService.updateAutomationSettings(this.discordWebhook, this.cooldownBetweenChecks).subscribe({
+      next: (data) => {
+        this.toastService.show({ message: data.message, classname: 'bg-success text-light' });
+      }
+    });
+  }
+
+  toggleAutomationChecks(): void {
+    this.serverService.toggleAutomatedChecks(!this.automatedChecks).subscribe({
+      next: (data) => {
+        this.automatedChecks = !this.automatedChecks;
+        this.toastService.show({ message: data.message, classname: 'bg-success text-light' });
+      }
+    });
   }
 }

@@ -2,11 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { Project, ColorSetting } from '../interfaces/arts.interface';
+import { Project, ColorSetting, CheckResponse, AutomationSettings } from '../interfaces/arts.interface';
 
-interface CheckResponse {
-  message: string;
-}
+
 
 @Injectable({
   providedIn: 'root'
@@ -81,4 +79,34 @@ export class ServerServiceService {
   updateColors(colors: { [key: string]: boolean }): Observable<CheckResponse> {
     return this.http.put<CheckResponse>(`${this.baseUrl}/config/colors`, { colors });
   } 
+
+  /**
+   * Get automation settings
+   */
+  getAutomationSettings(): Observable<AutomationSettings> {
+    return this.http.get<AutomationSettings>(`${this.baseUrl}/projects/automation`);
+  }
+
+  /**
+   * Update automation settings
+   * @param enabled - Whether automated checks are enabled
+   * @param discordWebhookUrl - Discord webhook URL for notifications
+   * @param cooldown - Cooldown period between checks in seconds
+   */
+  updateAutomationSettings(discordWebhookUrl: string, cooldown: number): Observable<CheckResponse> {
+    return this.http.put<CheckResponse>(`${this.baseUrl}/projects/automation`, {
+      discord_webhook: discordWebhookUrl,
+      cooldown_between_checks: cooldown
+    });
+  }
+
+  /**
+   * Toggle automated checks on or off
+   * @param enabled - Whether to enable or disable automated checks
+   */
+  toggleAutomatedChecks(enabled: boolean): Observable<CheckResponse> {
+    return this.http.put<CheckResponse>(`${this.baseUrl}/projects/automation/toggle`, {
+      automated_checks: enabled
+    });
+  }
 }

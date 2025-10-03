@@ -45,6 +45,13 @@ export class ProjectsComponent {
   cooldownBetweenChecks: number = 300;
   automatedChecks: boolean = false;
 
+  terminalLogs: string[] = [
+    'System initialized.',
+    'Checking project "Example Project"...',
+    'No changes detected.',
+    'Next check in 5 minutes.'
+  ];
+
   ngOnInit(): void {
     this.serverService.listProjects().subscribe((data) => {
       this.artsData = data;
@@ -69,6 +76,11 @@ export class ProjectsComponent {
   checkProject(project: Project): void {
     this.serverService.checkProject(project.name).subscribe((data) => {
       this.toastService.show({ message: data.message });
+      this.selectedProject = data.response!;
+      const index = this.artsData.findIndex(p => p.name === project.name);
+      if (index !== -1) {
+        this.artsData[index] = this.selectedProject;
+      }
     });
   }
 
@@ -77,7 +89,7 @@ export class ProjectsComponent {
   }
 
   checkAllProjectsAutomatically(): void {
-    console.log("Automatic checks toggled:", this.automaticChecks);
+    this.toastService.show({ message: "Automatic checks toggled:" });
   }
 
   saveProjectChanges(): void {
@@ -190,5 +202,13 @@ export class ProjectsComponent {
         this.toastService.show({ message: data.message, classname: 'bg-success text-light' });
       }
     });
+  }
+
+  getStatus(project: Project): string {
+    if (project.track === false) {
+      return 'status-circle-gray';
+    } else {
+      return project.griefed ? 'status-circle-red' : 'status-circle-green';
+    }
   }
 }

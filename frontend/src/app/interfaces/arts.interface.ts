@@ -22,6 +22,7 @@ export interface ColorSetting {
 
 export interface CheckResponse {
   message: string;
+  response?: Project;
 }
 
 export interface AutomationSettings {

@@ -1,11 +1,167 @@
+// Dark Purple Neon Color Palette
+$primary-color: #a855f7;      // Vibrant purple
+$secondary-color: #ec4899;    // Hot pink accent
+$accent-color: #8b5cf6;       // Deep violet
+$neon-glow: #d946ef;          // Neon magenta
+
+$background-color: #0f0a1e;   // Deep dark purple-black
+$surface-color: #1a1229;      // Slightly lighter surface
+$card-color: #251a3a;         // Card/elevated surface
+
+$text-color: #e9d5ff;         // Light purple text
+$text-secondary: #c084fc;     // Muted purple text
+$text-muted: #9333ea;         // Even more muted
+
+// Neon effects
+$glow-purple: #a855f7;
+$glow-pink: #ec4899;
+$glow-cyan: #06b6d4;          // Cyan accent for contrast
+
+// States
+$hover-color: #c026d3;
+$active-color: #d946ef;
+$disabled-color: #4a3a5f;
+
+// Borders & shadows
+$border-color: #3b2a54;
+$shadow-glow: 0 0 20px rgba(168, 85, 247, 0.5);
+$shadow-glow-strong: 0 0 20px rgba(168, 85, 247, 0.8);
+
+.page {
+  background-color: $background-color;
+  color: $text-color;
+  min-height: 100vh;
+}
+
+.btn-outline-primary {
+  color: $primary-color;
+  border-color: $primary-color;
+  &:hover {
+    background-color: $primary-color;
+    color: $background-color;
+    box-shadow: $shadow-glow;
+  }
+}
+
+.btn-primary {
+  background-color: $primary-color;
+  border-color: $primary-color;
+  color: $background-color;
+  &:hover {
+    background-color: $hover-color;
+    border-color: $hover-color;
+    box-shadow: $shadow-glow;
+  }
+  &:active {
+    background-color: $active-color;
+    border-color: $active-color;
+    box-shadow: $shadow-glow-strong;
+  }
+  &:disabled {
+    background-color: $disabled-color;
+    border-color: $disabled-color;
+    color: $text-muted;
+    box-shadow: none;
+  }
+}
+
+.btn-outline-secondary {
+  color: $secondary-color;
+  border-color: $secondary-color;
+  &:hover {
+    background-color: $secondary-color;
+    color: $background-color;
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+  }
+}
+
+.btn-secondary {
+  background-color: $secondary-color;
+  border-color: $secondary-color;
+  color: $background-color;
+  &:hover {
+    background-color: darken($secondary-color, 10%);
+    border-color: darken($secondary-color, 10%);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+  }
+  &:active {
+    background-color: darken($secondary-color, 20%);
+    border-color: darken($secondary-color, 20%);
+    box-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
+  }
+  &:disabled {
+    background-color: $disabled-color;
+    border-color: $disabled-color;
+    color: $text-muted;
+    box-shadow: none;
+  }
+}
+
+.card {
+  background-color: $card-color;
+  border: 1px solid $border-color;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  color: $text-color;
+  
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+  }
+}
+
+.text-muted {
+  color: $text-muted !important;
+}
+
 .project-image {
-    padding-top: 20px;
-    padding-bottom: 20px;
-    width: 100%;
-    max-height: fit-content;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-    image-rendering: pixelated; /* For pixel art */
+  padding-top: 20px;
+  padding-bottom: 20px;
+  width: 100%;
+  max-height: fit-content;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated; /* For pixel art */
+}
+
+.terminal-title {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: $text-color;
+}
+
+.terminal-box {
+  margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  .terminal-chat {
+    border: 1px solid $border-color;
+    background-color: $surface-color;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.875rem;
+    color: $text-secondary;
+    overflow-y: auto;
+    flex: 1;
+  }
+}
+
+.section {
+  width: 100%;
+  padding: 30px;
+}
+
+.projects-box {
+  border-right: 1px solid $border-color;
+  background-color: $surface-color;
+}
+
+.projects-box-buttons {
+  border-top: 1px solid $border-color;
+  padding-top: 15px;
 }
 
 .colors-grid {
@@ -34,9 +190,59 @@
 }
 
 .status-circle {
-    width: 16px;
-    height: 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  position: relative;
+  animation: pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    display: inline-block;
-    margin-right: 8px;
+    background: inherit;
+    animation: ripple 2s ease-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 0.6;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(2);
+      opacity: 0;
+    }
+  }
+
+  &.status-circle-gray {
+    background-color: gray;
+  }
+  
+  &.status-circle-red {
+    background-color: red;
+  }
+  
+  &.status-circle-green {
+    background-color: green;
+  }
 }

@@ -50,3 +50,7 @@ It's important to note that the final coordinates should include an additional p
 2. Install the extension Violentmonkey.
 3. [Install the hook script](TODO)
 4. Go to the console and paste the discord fixer command every time you want to fix an art :3
+
+# TODO
+- Add tool to get coordinates automatically
+- Fixing process ???

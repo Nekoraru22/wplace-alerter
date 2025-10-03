@@ -27,8 +27,8 @@ class Position(BaseModel):
 
 class WPlaceArtInterface(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, pattern=r'^[a-zA-Z0-9_-]+$')
-    track: bool = True
-    check_transparent_pixels: bool = False
+    track: bool
+    check_transparent_pixels: bool
     last_checked: str = ""
     griefed: bool = False
     api_image: str = Field(..., pattern=r'^https://backend\.wplace\.live/files/s0/tiles/\d+/\d+\.png$')

@@ -33,7 +33,6 @@ export class ProjectsComponent {
     end_coords: { x: 0, y: 0 },
     track: false,
     check_transparent_pixels: false,
-    last_checked: new Date(),
     griefed: false
   };
   selectedProject: Project | null = null;
@@ -54,6 +53,7 @@ export class ProjectsComponent {
   automatedChecks: boolean = false;
 
   isImgLoading: boolean = true;
+  checkingAll: boolean = false;
 
   ngOnInit(): void {
     this.serverService.listProjects().subscribe((data) => {
@@ -79,8 +79,11 @@ export class ProjectsComponent {
 	}
 
   checkAllProjects(): void {
+    this.toastService.show({ message: "Checking all projects..." });
+    this.checkingAll = true;
     this.serverService.checkAllProjects().subscribe((data) => {
       this.toastService.show({ message: data.message });
+      this.checkingAll = false;
     });
   }
 
@@ -88,6 +91,7 @@ export class ProjectsComponent {
     this.serverService.checkProject(project.name).subscribe({
       next: (data) => {
         this.toastService.show({ message: data.message });
+        data.response!.name = project.name;
         this.selectedProject = data.response!;
         const index = this.artsData.findIndex(p => p.name === project.name);
         if (index !== -1) {
@@ -201,6 +205,17 @@ export class ProjectsComponent {
         this.artsData.push(this.newProject);
         this.modalService.dismissAll();
         this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
+
+        if (!data.response) {
+          return;
+        }
+
+        data.response.name = this.newProject.name;
+        const index = this.artsData.findIndex(p => p.name === this.newProject.name);
+        if (index !== -1) {
+          this.artsData[index] = data.response;
+        }
+        this.selectProject(this.artsData[index]);
       },
       error: (error: any) => {
         console.error("Error adding project:", error.message);
@@ -214,7 +229,6 @@ export class ProjectsComponent {
           end_coords: { x: 0, y: 0 },
           track: false,
           check_transparent_pixels: false,
-          last_checked: new Date(),
           griefed: false
         };
         this.errorMessage = '';

@@ -19,7 +19,7 @@
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <div class="status-circle me-3 hidden" placement="top"></div>
-                                        <span class="text-muted small">Last checked: {{ project.last_checked }}</span>
+                                        <span class="text-muted small">Last checked: {{ project.last_checked || 'Never' }}</span>
                                     </div>
                                 </div>
                                 <button class="btn btn-outline-primary" (click)="checkProject(project)">Check</button>
@@ -29,7 +29,10 @@
                 }
             </div>
             <div class="d-flex projects-box-buttons">
-                <button class="btn btn-primary w-100" (click)="checkAllProjects()">Check All</button>
+                <button class="btn btn-primary w-100" (click)="checkAllProjects()" [disabled]="checkingAll">
+                    <span *ngIf="checkingAll" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Check All
+                </button>
                 <button class="btn btn-outline-primary w-100 ms-2" (click)="openModal(newProjectModal)">Add new</button>
             </div>
         </div>
@@ -274,7 +277,10 @@
 <!-- Automate Modal -->
 <ng-template #automateModal let-modal>
 	<div class="modal-header">
-		<h4 class="modal-title">Automate Project Checks</h4>
+        <div class="d-flex align-items-center">
+            <div class="status-circle me-2" [ngClass]="automatedChecks ? 'status-circle-green' : 'status-circle-gray'" placement="top"></div>
+            <h4 class="modal-title">Automate Project Checks</h4>
+        </div>
 		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
 	</div>
 
@@ -305,12 +311,6 @@
                     <small class="text-danger">Cooldown must be at least 1 second</small>
                 }
             </div>
-            
-            @if (automatedChecks) {
-                <div class="alert alert-info" role="alert">
-                    <strong>Status:</strong> Automated checks are currently running
-                </div>
-            }
         </form>
 
         @if (errorMessage) {

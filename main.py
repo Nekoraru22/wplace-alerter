@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import time
+import shutil
 
 from flask_cors import CORS
 from pydantic import ValidationError
@@ -67,8 +68,8 @@ def check_project(name):
     return jsonify(message=message, response=response), 200
 
 
-@app.post('/projects/check/<cooldown>')
-def check_all_projects(cooldown: int = 2):
+@app.post('/projects/check')
+def check_all_projects():
     load_arts_data()
     responses = []
     try:
@@ -86,7 +87,7 @@ def check_all_projects(cooldown: int = 2):
 
             # Sleep for 5 seconds between checks to avoid rate limiting
             if i < len(ARTS_DATA["arts"]) - 1:
-                time.sleep(cooldown)
+                time.sleep(2)
         return jsonify(message="All projects checked successfully.", response=responses), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
@@ -116,7 +117,6 @@ def edit_project(project):
 @app.post('/projects')
 def add_project():
     load_arts_data()
-    print(ARTS_DATA)
     data = request.json
 
     if not data:
@@ -126,7 +126,7 @@ def add_project():
     name = data["name"]
     if name in ARTS_DATA["arts"]:
         return jsonify(message=f"Project {name} already exists."), 400
-    
+
     try:
         # Validate data using Pydantic
         validated_project = WPlaceArtInterface(**data)
@@ -145,10 +145,14 @@ def add_project():
         # Save changes to file
         with open('data/arts.json', 'w+') as file:
             json.dump(ARTS_DATA, file, indent=4)
+            time.sleep(1)  # Ensure file is written before proceeding
 
-        # Check for changes immediately after adding
-        WPLACE.check_change(name)
-    
+            # Check for changes after adding
+            if validated_project.track:
+                path = f"data/{name}/"
+                os.makedirs(path, exist_ok=True)
+                _, response = WPLACE.check_change(name)
+                return jsonify(message=f"Project {name} added and checked successfully.", response=response), 200
     except ValidationError as e:
         errors = []
         for error in e.errors():
@@ -175,6 +179,10 @@ def delete_project(project):
         # Save changes to file
         with open('data/arts.json', 'w') as file:
             json.dump(ARTS_DATA, file, indent=4)
+
+        # Delete project folder
+        path = f"data/{project}/"
+        shutil.rmtree(path, ignore_errors=True)
     except Exception as e:
         return jsonify(message=str(e)), 400
     return jsonify(message=f"Project {project} deleted successfully."), 200

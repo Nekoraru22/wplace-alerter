@@ -38,15 +38,44 @@
         <div class="section">
             @if (selectedProject && editedProject) {
                 <div class="d-flex align-items-center">
-                    <div class="status-circle me-3" [ngClass]="selectedProject.griefed ? 'bg-danger' : 'bg-success'" 
-                        [ngbTooltip]="selectedProject.griefed ? 'Griefed' : 'Not Griefed'" placement="top">
+                    <div class="status-circle me-3" [ngClass]="getStatus(selectedProject)" placement="top">
                     </div>
                     <h2 class="">{{selectedProject.name}}</h2>
                 </div>
                 <span class="text-muted small">Last checked: {{ selectedProject.last_checked }}</span>
                 <div class="text-center mb-3 d-flex justify-content-center project-images">
-                    <img [src]="serverService.getBaseUrl() + '/data/' + selectedProject.name + '/original.png'" alt="Original Image" class="project-image px-3">
-                    <img [src]="serverService.getBaseUrl() + '/data/' + selectedProject.name + '/new.png'" alt="New Image" class="project-image px-3">
+                    <div class="d-flex flex-column align-items-center w-100">
+                        @if (isImgLoading) {
+                            <div class="spinner-border m-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        }
+                        <img
+                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/original.png'"
+                            alt="Original Image"
+                            class="project-image px-3"
+                            [style.display]="isImgLoading ? 'none' : 'block'"
+                            (load)="isImgLoading = false"
+                            (error)="onImageError($event)"
+                        >
+                        <div class="mt-1 mb-2">Original</div>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        @if (isImgLoading) {
+                            <div class="spinner-border m-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        }
+                        <img
+                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/new.png'"
+                            alt="New Image"
+                            class="project-image px-3"
+                            [style.display]="isImgLoading ? 'none' : 'block'"
+                            (load)="isImgLoading = false"
+                            (error)="onImageError($event)"
+                        >
+                        <div class="mt-1 mb-2">New</div>
+                    </div>
                 </div>
                 <form (ngSubmit)="saveProjectChanges()">
                     <div class="mb-3">
@@ -85,7 +114,7 @@
                     </div>
                     <div class="mb-3">
                         <strong><label for="endCoords" class="form-label">End Coords</label></strong>
-                        <div class="d-flex">
+                        <div class="d-flex align-items-center">
                             <label class="me-1" for="endCoordsX">X:</label>
                             <input type="text" class="form-control" id="endCoordsX" 
                                 [(ngModel)]="editedProject.end_coords.x" 
@@ -107,7 +136,9 @@
                 </form>
             }
             @else {
-                <p>Select a project to see details.</p>
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <span class="text-muted">Select a project to view details</span>
+                </div>
             }
         </div>
 
@@ -115,10 +146,20 @@
         <div class="w-100 terminal-box d-flex flex-column">
             <h4 class="terminal-title">Console</h4>
             <div class="terminal-chat">
-                @for (logEntry of terminalLogs; track logEntry; let i = $index) {
-                    <div [innerHTML]="logEntry"></div>
-                }
+                <div style="white-space: pre-line;">{{ terminalLogs }}</div>
             </div>
+
+            @if (selectedProject && selectedProject.griefed) {
+                <h4 class="terminal-title mt-2">Fix command</h4>
+                <div class="terminal-chat code-container">
+                    <button class="copy-button" (click)="copyCode()" [title]="copied ? 'Copied!' : 'Copy code'">
+                        <span *ngIf="!copied">Copy</span>
+                        <span *ngIf="copied">✓</span>
+                    </button>
+                    <pre><code class="language-javascript">{{ fixCommand }}</code></pre>
+                </div>
+            }
+
             <div class="config-buttons d-flex justify-content-end mt-2">
                 <button class="btn btn-outline-primary" (click)="loadColors(); openBottom(colorsModal)">Colors</button>
                 <button class="btn btn-outline-primary ms-2" (click)="openModal(automateModal)">Automate</button>
@@ -128,134 +169,211 @@
 
 </div>
 
-<!-- modals -->
-<ng-template #newProjectModal let-c="close" let-d="dismiss">
-
+<!-- New Project Modal -->
+<ng-template #newProjectModal let-modal>
 	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Create New Project</h4>
-		<button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')"></button>
+		<h4 class="modal-title">Create New Project</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
 	</div>
 
 	<div class="modal-body">
-		<form>
+		<form #newProjectForm="ngForm">
             <div class="mb-3">
                 <label for="projectName-modal" class="form-label">Project Name</label>
-                <input type="text" class="form-control" id="projectName-modal" [(ngModel)]="newProject.name" name="projectName-modal" required>
+                <input type="text" class="form-control" id="projectName-modal" 
+                    [(ngModel)]="newProject.name" 
+                    name="projectName-modal" 
+                    required
+                    #projectName="ngModel">
+                @if (projectName.invalid && projectName.touched) {
+                    <small class="text-danger">Project name is required</small>
+                }
             </div>
             <div class="mb-3">
                 <label for="apiImage-modal" class="form-label">API Image URL</label>
-                <input type="text" class="form-control" id="apiImage-modal" [(ngModel)]="newProject.api_image" name="apiImage-modal" required>
-            </div>
-            <div class="mb-3 d-flex align-items-center">
-                <input type="checkbox" class="form-check-input m-0 p-0" id="tracking-modal" [(ngModel)]="newProject.track" name="tracking-modal">
-                <label for="tracking-modal" class="form-label m-0 p-0 ms-1">Tracking</label>
-                <input type="checkbox" class="form-check-input m-0 p-0 ms-3" id="checkTransparent-modal" [(ngModel)]="newProject.check_transparent_pixels" name="checkTransparent-modal">
-                <label for="checkTransparent-modal" class="form-label m-0 p-0 ms-1">Check Transparent</label>
+                <input type="text" class="form-control" id="apiImage-modal" 
+                    [(ngModel)]="newProject.api_image" 
+                    name="apiImage-modal" 
+                    required
+                    #apiImage="ngModel">
+                @if (apiImage.invalid && apiImage.touched) {
+                    <small class="text-danger">API Image URL is required</small>
+                }
             </div>
             <div class="mb-3">
-                <label for="startCoords-modal" class="form-label">Start Coords</label>
-                <div class="d-flex align-items-center">
-                    <label class="me-1" for="startCoordsX-modal">X:</label>
-                    <input type="text" class="form-control" id="startCoordsX-modal" [(ngModel)]="newProject.start_coords.x" name="startCoordsX-modal" required>
-                    <label class="me-1 ms-2" for="startCoordsY-modal">Y:</label>
-                    <input type="text" class="form-control" id="startCoordsY-modal" [(ngModel)]="newProject.start_coords.y" name="startCoordsY-modal" required>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" class="form-check-input" id="tracking-modal" 
+                        [(ngModel)]="newProject.track" 
+                        name="tracking-modal">
+                    <label class="form-check-label" for="tracking-modal">Tracking</label>
+                </div>
+                <div class="form-check form-check-inline ms-3">
+                    <input type="checkbox" class="form-check-input" id="checkTransparent-modal" 
+                        [(ngModel)]="newProject.check_transparent_pixels" 
+                        name="checkTransparent-modal">
+                    <label class="form-check-label" for="checkTransparent-modal">Check Transparent</label>
                 </div>
             </div>
             <div class="mb-3">
-                <label for="endCoords-modal" class="form-label">End Coords</label>
-                <div class="d-flex">
-                    <label class="me-1" for="endCoordsX-modal">X:</label>
-                    <input type="text" class="form-control" id="endCoordsX-modal" [(ngModel)]="newProject.end_coords.x" name="endCoordsX-modal" required>
-                    <label class="me-1 ms-2" for="endCoordsY-modal">Y:</label>
-                    <input type="text" class="form-control" id="endCoordsY-modal" [(ngModel)]="newProject.end_coords.y" name="endCoordsY-modal" required>
+                <label class="form-label">Start Coords</label>
+                <div class="row g-2">
+                    <div class="col">
+                        <label class="form-label small" for="startCoordsX-modal">X:</label>
+                        <input type="number" class="form-control" id="startCoordsX-modal" 
+                            [(ngModel)]="newProject.start_coords.x" 
+                            name="startCoordsX-modal" 
+                            required
+                            #startX="ngModel">
+                    </div>
+                    <div class="col">
+                        <label class="form-label small" for="startCoordsY-modal">Y:</label>
+                        <input type="number" class="form-control" id="startCoordsY-modal" 
+                            [(ngModel)]="newProject.start_coords.y" 
+                            name="startCoordsY-modal" 
+                            required
+                            #startY="ngModel">
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">End Coords</label>
+                <div class="row g-2">
+                    <div class="col">
+                        <label class="form-label small" for="endCoordsX-modal">X:</label>
+                        <input type="number" class="form-control" id="endCoordsX-modal" 
+                            [(ngModel)]="newProject.end_coords.x" 
+                            name="endCoordsX-modal" 
+                            required
+                            #endX="ngModel">
+                    </div>
+                    <div class="col">
+                        <label class="form-label small" for="endCoordsY-modal">Y:</label>
+                        <input type="number" class="form-control" id="endCoordsY-modal" 
+                            [(ngModel)]="newProject.end_coords.y" 
+                            name="endCoordsY-modal" 
+                            required
+                            #endY="ngModel">
+                    </div>
                 </div>
             </div>
         </form>
 
-        <!-- Error Messages -->
         @if (errorMessage) {
-            <div class="alert alert-danger m-0" role="alert">
+            <div class="alert alert-danger" role="alert">
                 {{ errorMessage }}
             </div>
         }
 	</div>
     
 	<div class="modal-footer">
-        <button type="button" class="btn btn-outline-primary" (click)="addNewProject()">Save</button>
-		<button type="button" class="btn btn-outline-secondary" (click)="c('Close click')">Close</button>
+        <button type="button" class="btn btn-primary" (click)="addNewProject()" [disabled]="newProjectForm.invalid">Create Project</button>
+		<button type="button" class="btn btn-outline-secondary" (click)="modal.close()">Cancel</button>
 	</div>
-    
 </ng-template>
 
-<ng-template #automateModal let-c="close" let-d="dismiss">
-
+<!-- Automate Modal -->
+<ng-template #automateModal let-modal>
 	<div class="modal-header">
-		<h4 class="modal-title" id="modal-basic-title">Automate Project Checks</h4>
-		<button type="button" class="btn-close" aria-label="Close" (click)="d('Cross click')"></button>
+		<h4 class="modal-title">Automate Project Checks</h4>
+		<button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
 	</div>
 
 	<div class="modal-body">
-		<form>
+		<form #automateForm="ngForm">
             <div class="mb-3">
                 <label for="discord-modal" class="form-label">Discord Webhook URL</label>
-                <input type="text" class="form-control" id="discord-modal" [(ngModel)]="discordWebhook" name="discord-modal" required>
+                <input type="url" class="form-control" id="discord-modal" 
+                    [(ngModel)]="discordWebhook" 
+                    name="discord-modal" 
+                    required
+                    placeholder="https://discord.com/api/webhooks/..."
+                    #discord="ngModel">
+                @if (discord.invalid && discord.touched) {
+                    <small class="text-danger">Valid Discord webhook URL is required</small>
+                }
             </div>
             <div class="mb-3">
                 <label for="cooldown-modal" class="form-label">Cooldown Between Checks (seconds)</label>
-                <input type="text" class="form-control" id="cooldown-modal" [(ngModel)]="cooldownBetweenChecks" name="cooldown-modal" required>
+                <input type="number" class="form-control" id="cooldown-modal" 
+                    [(ngModel)]="cooldownBetweenChecks" 
+                    name="cooldown-modal" 
+                    required
+                    min="1"
+                    placeholder="60"
+                    #cooldown="ngModel">
+                @if (cooldown.invalid && cooldown.touched) {
+                    <small class="text-danger">Cooldown must be at least 1 second</small>
+                }
             </div>
+            
+            @if (automatedChecks) {
+                <div class="alert alert-info" role="alert">
+                    <strong>Status:</strong> Automated checks are currently running
+                </div>
+            }
         </form>
 
-        <!-- Error Messages -->
         @if (errorMessage) {
-            <div class="alert alert-danger m-0" role="alert">
+            <div class="alert alert-danger" role="alert">
                 {{ errorMessage }}
             </div>
         }
 	</div>
     
 	<div class="modal-footer">
-        <button type="button" class="btn btn-outline-{{ automatedChecks ? 'danger' : 'success' }}" (click)="toggleAutomationChecks()">{{ automatedChecks ? 'Stop' : 'Start' }} Automated Checks</button>
-        <button type="button" class="btn btn-outline-primary" (click)="updateAutomationSettings()">Save</button>
-        <button type="button" class="btn btn-outline-secondary" (click)="c('Close click')">Close</button>
+        <button type="button" 
+            class="btn btn-outline-{{ automatedChecks ? 'danger' : 'success' }}" 
+            (click)="toggleAutomationChecks()">
+            {{ automatedChecks ? 'Stop' : 'Start' }} Automated Checks
+        </button>
+        <button type="button" class="btn btn-primary" (click)="updateAutomationSettings()" [disabled]="automateForm.invalid">Save Settings</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="modal.close()">Close</button>
 	</div>
-    
 </ng-template>
 
-<ng-template #colorsModal let-c="close" let-d="dismiss">
-  <div class="modal-body p-3">
-    <form>
-      <div class="colors-grid">
-        @for (color of colors; track color; let i = $index) {
-          <div class="form-check p-0">
-            <input 
-              class="form-check-input d-none" 
-              type="checkbox" 
-              [(ngModel)]="color.enabled" 
-              name="{{color.name}}" 
-              id="{{color.name}}"
-            >
-            <label 
-              class="form-check-label color-box" 
-              for="{{color.name}}"
-              [style.background-color]="'rgb(' + color.rgb[0] + ',' + color.rgb[1] + ',' + color.rgb[2] + ')'"
-              placement="top"
-              [ngbTooltip]="color.name">
-            </label>
-          </div>
-        }
-      </div>
-    </form>
-  </div>
+<!-- Colors Modal -->
+<ng-template #colorsModal let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Color Settings</h4>
+        <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+    </div>
 
-  <div class="modal-footer d-flex justify-content-between">
-    <div>
-      <button type="button" class="btn btn-outline-primary" (click)="selectAllColors()">Select All</button>
-      <button type="button" class="btn btn-outline-primary ms-2" (click)="deselectAllColors()">Deselect All</button>
+    <div class="modal-body p-3">
+        <form>
+            <div class="colors-grid">
+                @for (color of colors; track color; let i = $index) {
+                    <div class="form-check p-0 m-0">
+                        <input 
+                            class="form-check-input d-none" 
+                            type="checkbox" 
+                            [(ngModel)]="color.enabled" 
+                            name="color-{{i}}" 
+                            id="color-{{i}}"
+                        >
+                        <label 
+                            class="form-check-label color-box" 
+                            [class.selected]="color.enabled"
+                            for="color-{{i}}"
+                            [style.background-color]="'rgba(' + color.rgb[0] + ',' + color.rgb[1] + ',' + color.rgb[2] + ',' + (color.name == 'TRANSPARENT' ? '0.1' : '1') + ')'"
+                            [ngbTooltip]="color.name"
+                            placement="top"
+                            container="body">
+                        </label>
+                    </div>
+                }
+            </div>
+        </form>
     </div>
-    <div>
-      <button type="button" class="btn btn-outline-primary" (click)="saveColorSettings()">Update</button>
-      <button type="button" class="btn btn-outline-secondary ms-2" (click)="c('Close click')">Close</button>
+
+    <div class="modal-footer d-flex justify-content-between">
+        <div>
+            <button type="button" class="btn btn-outline-primary" (click)="selectAllColors()">Select All</button>
+            <button type="button" class="btn btn-outline-primary ms-2" (click)="deselectAllColors()">Deselect All</button>
+            <button type="button" class="btn btn-outline-primary ms-2" (click)="selectFree()">Free Colors</button>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary" (click)="saveColorSettings()">Update</button>
+            <button type="button" class="btn btn-outline-secondary ms-2" (click)="modal.close()">Close</button>
+        </div>
     </div>
-  </div>
 </ng-template>

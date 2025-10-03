@@ -27,7 +27,7 @@ class Position(BaseModel):
 
 class WPlaceArtInterface(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, pattern=r'^[a-zA-Z0-9_-]+$')
-    track: bool = False
+    track: bool = True
     check_transparent_pixels: bool = False
     last_checked: str = ""
     griefed: bool = False
@@ -422,11 +422,11 @@ class WPlace:
             original_image: Path to the first image to attach.
             new_image: Path to the second image to attach.
         """
-        discord_webhook_url = self.arts_data["discord_webhook_url"]
+        discord_webhook = self.arts_data["discord_webhook"]
         files = {}
 
         # Dont send if no webhook is configured
-        if not discord_webhook_url:
+        if not discord_webhook:
             print(Fore.LIGHTRED_EX + "Error: No Discord webhook URL configured.")
             return
 
@@ -452,7 +452,7 @@ class WPlace:
                 print(Fore.LIGHTRED_EX + f"Error: Could not open {new_image} for reading.")
 
         try:
-            response = requests.post(discord_webhook_url, data=payload, files=files)
+            response = requests.post(discord_webhook, data=payload, files=files)
             response.raise_for_status()
         except requests.exceptions.HTTPError as errh:
             print(Fore.LIGHTRED_EX + f"HTTP Error: {errh}")

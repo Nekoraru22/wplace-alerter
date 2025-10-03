@@ -15,7 +15,7 @@ $border-color: rgba(100, 116, 139, 0.2);
 $glass-border: rgba(255, 255, 255, 0.1);
 
 // Glass shadows
-$shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+$shadow-glass: 0 7px 7px 0 rgba(0, 0, 0, 0.2);
 $shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
 $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
 
@@ -57,7 +57,6 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
     border-color: $primary-color;
     color: $primary-color;
     box-shadow: $shadow-glow;
-    transform: translateY(-1px);
   }
 }
 
@@ -68,8 +67,7 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
   box-shadow: $shadow-glass;
   
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: $shadow-glow-strong, $shadow-glass;
+    box-shadow: $shadow-glow, $shadow-glass;
   }
   
   &:active {
@@ -95,7 +93,6 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
     border-color: $secondary-color;
     color: $secondary-color;
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-    transform: translateY(-1px);
   }
 }
 
@@ -109,7 +106,6 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
     background: rgba(139, 92, 246, 0.3);
     border-color: $secondary-color;
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-    transform: translateY(-1px);
   }
   
   &:active {
@@ -135,7 +131,6 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
     border-color: #ef4444;
     color: #fca5a5;
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-    transform: translateY(-1px);
   }
 }
 
@@ -170,13 +165,13 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
   backdrop-filter: blur(10px);
   border: 1px solid $glass-border;
   border-radius: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   color: $text-color;
   box-shadow: $shadow-glass;
   
   &:hover {
     border-color: rgba(99, 102, 241, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.2), $shadow-glass;
+    box-shadow: 0 7px 7px 0 rgba(99, 102, 241, 0.1), $shadow-glass;
     transform: translateY(-2px);
   }
 }
@@ -193,13 +188,14 @@ $shadow-glow-strong: 0 0 30px rgba(99, 102, 241, 0.5);
   margin-top: 10px;
 
   .project-image {
+    width: 100%;
     padding-top: 20px;
     padding-bottom: 20px;
-    width: 100%;
     max-height: fit-content;
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
     image-rendering: pixelated;
+    user-select: none;
   }
 }
 
@@ -321,6 +317,22 @@ h2, h4 {
     transform: scale(1.1);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
   }
+
+  &.selected {
+    &::after {
+      position: absolute;
+      content: '✓';
+      color: white;
+      font-size: 12px;
+      margin-top: 2px;
+      margin-left: 5px;
+      text-shadow: 
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px  1px 0 #000,
+        1px  1px 0 #000;
+    }
+  }
 }
 
 .form-check-input:checked {
@@ -348,7 +360,6 @@ h2, h4 {
   display: inline-block;
   margin-right: 8px;
   position: relative;
-  box-shadow: 0 0 10px currentColor;
   animation: pulse 2s ease-in-out infinite;
 
   @keyframes pulse {
@@ -429,5 +440,126 @@ h2, h4 {
   
   &:hover {
     background: rgba(99, 102, 241, 0.7);
+  }
+}
+
+.spinner-border {
+  color: $primary-color;
+}
+
+.code-container {
+  position: relative;
+  
+  .copy-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    z-index: 10;
+    width: 80px;
+    font-family: monospace;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    span {
+      display: inline-block;
+    }
+  }
+}
+
+pre[class*="language-"] {
+  background: transparent !important;
+  padding: 0 !important;
+  padding-right: 50px !important; // Espacio para el botón
+  margin: 0 !important;
+}
+
+code[class*="language-"] {
+  background: transparent !important;
+}
+
+::ng-deep {
+  .modal-content, .offcanvas {
+    background: $surface-color; // mismo fondo translúcido que el projects-box
+    backdrop-filter: blur(25px);
+    border: 1px solid $glass-border;
+    border-radius: 1rem;
+    color: $text-color;
+    animation: fadeIn 0.3s ease;
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  }
+
+  .modal-header, .modal-footer {
+    border-color: $glass-border;
+    background: rgba(255, 255, 255, 0.02); // leve glass como separador
+    backdrop-filter: blur(10px);
+  }
+
+  .modal-title {
+    color: $text-color;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  }
+
+  .modal-body {
+    color: $text-secondary;
+  }
+
+  .btn-close {
+    filter: invert(0.9) grayscale(100%) brightness(150%);
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: rotate(90deg) scale(1.1);
+      filter: invert(1) brightness(200%);
+    }
+
+    // Avoid blue outline on focus
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+  }
+
+  .modal-header .btn-close {
+    margin-right: 0;
+  }
+
+  .modal-bottom .modal-dialog {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .modal-bottom .modal-dialog-centered{
+    align-items: end;
+  }
+
+  pre[class*="language-"] {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  code[class*="language-"] {
+    background: transparent !important;
   }
 }

@@ -1,14 +1,16 @@
-import { Component, TemplateRef, inject } from '@angular/core';
+import { Component, TemplateRef, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalConfig } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
-import { NgbOffcanvas } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 
 import { ColorSetting, Project } from '../interfaces/arts.interface';
 
 import { ToastServiceService } from '../services/toast.service.service';
 import { ServerServiceService } from '../services/server.service.service';
+
+import * as Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
 
 @Component({
   selector: 'app-projects',
@@ -20,6 +22,9 @@ import { ServerServiceService } from '../services/server.service.service';
 })
 export class ProjectsComponent {
   constructor(public serverService: ServerServiceService, private modalService: NgbModal) { }
+
+  @ViewChild('codeBlock') codeBlock?: ElementRef;
+
   artsData: Project[] = [];
   newProject: Project = {
     name: '',
@@ -33,6 +38,9 @@ export class ProjectsComponent {
   };
   selectedProject: Project | null = null;
   editedProject: Project | null = null;
+  terminalLogs: string | null = null;
+  fixCommand: string | null = null;
+  copied: boolean = false;
   hasChanges: boolean = false;
   automaticChecks: boolean = false;
   
@@ -41,18 +49,11 @@ export class ProjectsComponent {
 
   colors: ColorSetting[] = [];
 
-  offcanvasService = inject(NgbOffcanvas);
-
   discordWebhook: string = '';
   cooldownBetweenChecks: number = 300;
   automatedChecks: boolean = false;
 
-  terminalLogs: string[] = [
-    'System initialized.',
-    'Checking project "Example Project"...',
-    'No changes detected.',
-    'Next check in 5 minutes.'
-  ];
+  isImgLoading: boolean = true;
 
   ngOnInit(): void {
     this.serverService.listProjects().subscribe((data) => {
@@ -63,6 +64,14 @@ export class ProjectsComponent {
       this.cooldownBetweenChecks = data.cooldown_between_checks;
       this.automatedChecks = data.automated_checks;
     });
+  }
+
+  highlightCode() {
+    setTimeout(() => {
+      if (this.codeBlock?.nativeElement) {
+        Prism.highlightElement(this.codeBlock.nativeElement);
+      }
+    }, 100);
   }
 
   ngOnDestroy(): void {
@@ -99,6 +108,36 @@ export class ProjectsComponent {
     this.selectedProject = project;
     this.editedProject = JSON.parse(JSON.stringify(project));
     this.hasChanges = false;
+
+    if (project.name != this.selectedProject?.name) {
+      this.isImgLoading = true;
+      this.terminalLogs = null;
+      this.fixCommand = null;
+    }
+
+    this.serverService.getProjectLogs(project.name).subscribe({
+      next: (data) => {
+        this.terminalLogs = data.message;
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+        this.terminalLogs = null;
+      }
+    });
+
+    if (project.griefed) {
+      this.serverService.getProjectFixCommand(project.name).subscribe({
+        next: (data) => {
+          this.fixCommand = data.message;
+          setTimeout(() => {
+            Prism.highlightAll();
+          }, 50);
+        },
+        error: (error: any) => {
+          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+        }
+      });
+    }
   }
 
   onProjectChange(): void {
@@ -146,7 +185,7 @@ export class ProjectsComponent {
   }
 
   openModal(content: TemplateRef<any>): void {
-    this.modalService.open(content);
+    this.modalService.open(content, { centered: true });
   }
 
   addNewProject(): void {
@@ -212,8 +251,23 @@ export class ProjectsComponent {
     this.colors.forEach(color => color.enabled = false);
   }
 
+  selectFree(): void {
+    this.colors.forEach(color => {
+      if ([
+        'TRANSPARENT', 'BLACK', 'DARK_GRAY', 'GRAY', 'LIGHT_GRAY', 'WHITE', 'DEEP_RED', 'RED', 'ORANGE', 'GOLD',
+        'YELLOW', 'LIGHT_YELLOW', 'DARK_GREEN', 'GREEN', 'LIGHT_GREEN', 'DARK_TEAL', 'TEAL', 'LIGHT_TEAL', 'DARK_BLUE',
+        'BLUE', 'CYAN', 'INDIGO', 'LIGHT_INDIGO', 'DARK_PURPLE', 'PURPLE', 'LIGHT_PURPLE', 'DARK_PINK', 'PINK',
+        'LIGHT_PINK', 'DARK_BROWN', 'BROWN', 'BEIGE'
+      ].includes(color.name)) {
+        color.enabled = true;
+      } else {
+        color.enabled = false;
+      }
+    });
+  }
+
   openBottom(content: TemplateRef<any>) {
-		this.offcanvasService.open(content, { position: 'bottom', backdrop: true });
+    this.modalService.open(content, { centered: true, scrollable: true, windowClass: 'modal-bottom' });
 	}
 
   updateAutomationSettings(): void {
@@ -238,6 +292,29 @@ export class ProjectsComponent {
       return 'status-circle-gray';
     } else {
       return project.griefed ? 'status-circle-red' : 'status-circle-green';
+    }
+  }
+
+  onImageError(event: Event) {
+    const element = event.target as HTMLImageElement;
+    element.src = 'assets/logo.gif';
+  }
+
+  copyCode(): void {
+    if (this.fixCommand) {
+      navigator.clipboard.writeText(this.fixCommand).then(() => {
+        this.copied = true;
+        setTimeout(() => {
+          this.copied = false;
+        }, 2000);
+      }).catch(err => {
+        console.error('Error copying code:', err);
+        this.toastService.show({ 
+          message: 'Failed to copy code', 
+          classname: 'bg-danger text-light', 
+          delay: 3000 
+        });
+      });
     }
   }
 }

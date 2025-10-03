@@ -145,6 +145,9 @@ def add_project():
         # Save changes to file
         with open('data/arts.json', 'w+') as file:
             json.dump(ARTS_DATA, file, indent=4)
+
+        # Check for changes immediately after adding
+        WPLACE.check_change(name)
     
     except ValidationError as e:
         errors = []
@@ -230,6 +233,38 @@ def toggle_automation_checks():
     ARTS_DATA["automated_checks"] = data["automated_checks"]
     save_arts_data()
     return jsonify(message=f"Automated checks {'enabled' if data['automated_checks'] else 'disabled'} successfully."), 200
+
+
+@app.get('/projects/<project>/logs')
+def get_project_logs(project):
+    load_arts_data()
+    if project not in ARTS_DATA["arts"]:
+        return jsonify(message=f"Project {project} does not exist."), 404
+    log_path = f"data/{project}/changes.log"
+    if not os.path.exists(log_path):
+        return jsonify(message=f"No logs found for project {project}."), 404
+    try:
+        with open(log_path, 'r') as file:
+            logs = file.read()
+        return jsonify(message=logs), 200
+    except Exception as e:
+        return jsonify(message=str(e)), 400
+    
+
+@app.get('/projects/<project>/fix-command')
+def get_project_fix_command(project):
+    load_arts_data()
+    if project not in ARTS_DATA["arts"]:
+        return jsonify(message=f"Project {project} does not exist."), 404
+    log_path = f"data/{project}/fix_pixels.js"
+    if not os.path.exists(log_path):
+        return jsonify(message=f"No fix command found for project {project}."), 404
+    try:
+        with open(log_path, 'r') as file:
+            fix_command = file.read()
+        return jsonify(message=fix_command), 200
+    except Exception as e:
+        return jsonify(message=str(e)), 400
 
 
 def main(args: list):

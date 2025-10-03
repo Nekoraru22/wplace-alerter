@@ -109,4 +109,20 @@ export class ServerServiceService {
       automated_checks: enabled
     });
   }
+
+  /**
+   * Get logs of the project
+   * @param name - Project name
+   */
+  getProjectLogs(name: string): Observable<CheckResponse> {
+    return this.http.get<CheckResponse>(`${this.baseUrl}/projects/${name}/logs`);
+  }
+
+  /**
+   * Get fix command of the project
+   * @param name - Project name
+   */
+  getProjectFixCommand(name: string): Observable<CheckResponse> {
+    return this.http.get<CheckResponse>(`${this.baseUrl}/projects/${name}/fix-command`);
+  }
 }

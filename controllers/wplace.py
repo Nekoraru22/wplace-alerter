@@ -48,28 +48,6 @@ class WPlace:
         self.session.close()
 
     
-    def convert_to_api(self, pixels: List[Pixel]) -> Tuple[List[int], List[int]]:
-        """
-        DEPRECATED
-
-        Convert pixel data to API format.
-
-        Args:
-            pixels: List of pixels to convert
-
-        Returns:
-            Tuple of (colors, coords) where colors is a list of color IDs and coords is a list of coordinates
-        """
-        colors = []
-        coords = []
-        for pixel in pixels:
-            for color, position in pixel.items():
-                colors.append(color)
-                coords.append(position['x'])
-                coords.append(position['y'])
-        return colors, coords
-
-    
     def get_tiles_from_api_url(self, api_image: str) -> Tuple[int, int]:
         """
         Get tile information from the API url.
@@ -133,20 +111,38 @@ class WPlace:
 
         # Generate the JS file with data + reconstruction code
         js_content = dedent(f"""
+            function pixelsToLatLng(x, y) {{
+                return data.ctx.crosshair.gm.pixelsToLatLon(x, y, 11);
+            }}
+            function moveTo(x, y) {{
+                const [lat, lng] = pixelsToLatLng(x, y);
+                data.ctx.map.flyTo({{
+                    center: {{ lat, lng }},
+                    zoom: 14
+                }})
+            }}
             const pixelData = {json.dumps(compact_data)};
             const tiles = {json.dumps(api_tiles)};
             const t0 = tiles[0];
             const t1 = tiles[1];
-            pixelData.forEach((p, i) => {{
-                o.set(`t=(${{t0}},${{t1}});p=(${{p[0]}},${{p[1]}});s=0`, {{
-                    "color": {{ "r": p[2], "g": p[3], "b": p[4], "a": p[5] }},
-                    "tile": tiles,
-                    "pixel": [p[0], p[1]],
-                    "season": 0,
-                    "colorIdx": p[6]
+            const charges = Math.trunc(data.user.user.charges);
+            moveTo(t0*1000 + pixelData[0][0], t1*1000 + pixelData[0][1]);
+            setTimeout(() => {{
+                pixelData.slice(0, charges).forEach(p => {{
+                    o.set(`t=(${{t0}},${{t1}});p=(${{p[0]}},${{p[1]}});s=0`, {{
+                        "color": {{ "r": p[2], "g": p[3], "b": p[4], "a": p[5] }},
+                        "tile": tiles,
+                        "pixel": [p[0], p[1]],
+                        "season": 0,
+                        "colorIdx": p[6]
+                    }});
                 }});
-            }});
-            document.querySelector('button.btn-lg.relative').__click();
+                document.querySelector('button.btn-lg.relative').__click();
+                if (pixelData.length > charges) {{
+                    console.log("Not enough charges to place all pixels. Remaining pixels:");
+                    console.log(pixelData.slice(charges));
+                }}
+            }}, 3000);
         """).strip()
 
         # Save command to file

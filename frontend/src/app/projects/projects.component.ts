@@ -159,6 +159,12 @@ export class ProjectsComponent {
       }
     });
 
+    this.serverService.getProjectFixCommand(project.name).subscribe({
+      next: (data) => {
+        this.fixCommand = data.message;
+      }
+    });
+
     if (project.griefed) {
       this.serverService.getProjectFixCommand(project.name).subscribe({
         next: (data) => {

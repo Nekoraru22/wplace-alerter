@@ -38,7 +38,7 @@
         </div>
 
         <!-- Selected project details -->
-        <div class="section">
+        <div class="section overflow-auto">
             @if (selectedProject && editedProject) {
                 <div class="d-flex align-items-center">
                     <div class="status-circle me-3" [ngClass]="getStatus(selectedProject)" placement="top">

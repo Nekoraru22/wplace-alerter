@@ -22,7 +22,7 @@
                                         <span class="text-muted small">Last checked: {{ project.last_checked || 'Never' }}</span>
                                     </div>
                                 </div>
-                                <button class="btn btn-outline-primary" (click)="checkProject(project)">Check</button>
+                                <button class="btn btn-outline-primary" (click)="checkProject(project, $event)">Check</button>
                             </div>
                         </div>
                     </div>
@@ -133,7 +133,7 @@
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary" [disabled]="!hasChanges">Save Changes</button>
-                        <button type="button" class="btn btn-secondary ms-2" [disabled]="!selectedProject.track" (click)="checkProject(selectedProject)">Check</button>
+                        <button type="button" class="btn btn-secondary ms-2" (click)="checkProject(selectedProject, $event)">Check</button>
                         <button type="button" class="btn btn-danger ms-2" (click)="deleteProject(selectedProject)">Delete</button>
                     </div>
                 </form>

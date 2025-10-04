@@ -116,7 +116,9 @@ export class ProjectsComponent {
     });
   }
 
-  checkProject(project: Project): void {
+  checkProject(project: Project, event: MouseEvent): void {
+    event.stopPropagation();
+
     this.serverService.checkProject(project.name).subscribe({
       next: (data) => {
         this.toastService.show({ message: data.message });

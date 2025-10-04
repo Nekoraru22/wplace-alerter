@@ -68,8 +68,6 @@ def check_project(name):
     load_arts_data()
     if name not in ARTS_DATA["arts"]:
         return jsonify(message=f"Project {name} does not exist."), 400
-    if not ARTS_DATA["arts"][name]["track"]:
-        return jsonify(message=f"Project {name} is not being tracked."), 400
 
     # Create folder if it doesn't exist
     path = f"data/{name}/"

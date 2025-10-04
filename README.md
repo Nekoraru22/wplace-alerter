@@ -4,7 +4,9 @@ This project implements a system to detect modifications to pixel art and instan
 # How to use
 1. Fill the `data/arts_template.json` file with the desired configuration, including the Discord webhook URL and the arts to track.
 2. Change the `data/arts_template.json` file to `data/arts.json` to start tracking the specified arts.
-3. Run the `main.py` script to start the art tracking process.
+3. Create a environment with `python -m venv venv` and activate it (`.\venv\Scripts\activate` on Windows or `source venv/bin/activate` on MacOS/Linux).
+4. Install the required packages using `pip install -r requirements.txt`.
+5. Run the `main.py` script to start the art tracking process.
 
 ## How to fill the template
 
@@ -48,7 +50,7 @@ It's important to note that the final coordinates should include an additional p
 
 1. Open "Sources" in the browser's developer tools.
 2. Install the extension Violentmonkey.
-3. [Install the hook script](TODO)
+3. [Install the hook script](https://github.com/Nekoraru22/wplace-alerter/releases/download/v1.0.0/wplace-h.user.js)
 4. Go to the console and paste the discord fixer command every time you want to fix an art :3
 
 # TODO

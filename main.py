@@ -3,6 +3,7 @@ import sys
 import json
 import time
 import shutil
+import threading
 
 from flask_cors import CORS
 from pydantic import ValidationError
@@ -14,15 +15,26 @@ from controllers.colors import Color, color_config
 
 # Load arts data
 ARTS_DATA = {}
+TIME_BETWEEN_PROJECT_CHECKS = 2
+__semaforo = threading.Semaphore(1)
+
 def load_arts_data():
     global ARTS_DATA
-    with open('data/arts.json') as file:
-        ARTS_DATA = json.load(file)
+    __semaforo.acquire()
+    try:
+        with open('data/arts.json') as file:
+            ARTS_DATA = json.load(file)
+    finally:
+        __semaforo.release()
 
 def save_arts_data():
     global ARTS_DATA
-    with open('data/arts.json', 'w') as file:
-        json.dump(ARTS_DATA, file, indent=4)
+    __semaforo.acquire()
+    try:
+        with open('data/arts.json', 'w') as file:
+            json.dump(ARTS_DATA, file, indent=4)
+    finally:
+        __semaforo.release()
 
 load_arts_data()
 WPLACE = WPlace(ARTS_DATA)
@@ -87,7 +99,7 @@ def check_all_projects():
 
             # Sleep for 5 seconds between checks to avoid rate limiting
             if i < len(ARTS_DATA["arts"]) - 1:
-                time.sleep(2)
+                time.sleep(TIME_BETWEEN_PROJECT_CHECKS)
         return jsonify(message="All projects checked successfully.", responses=responses), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
@@ -275,6 +287,38 @@ def get_project_fix_command(project):
         return jsonify(message=str(e)), 400
 
 
+def automated_check_loop():
+    """
+    Loop to perform automated checks based on configuration.
+    """
+    global ARTS_DATA
+    
+    while ARTS_DATA.get("automated_checks", False):
+        load_arts_data()
+        cooldown = ARTS_DATA.get("cooldown_between_checks", 300)
+        
+        try:
+            print(f"[AUTOMATION] Starting automated check at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            for i, name in enumerate(ARTS_DATA["arts"]):
+                if not ARTS_DATA["arts"][name]["track"]:
+                    continue
+                
+                path = f"data/{name}/"
+                os.makedirs(path, exist_ok=True)
+                
+                WPLACE.check_change(name)
+                
+                if i < len(ARTS_DATA["arts"]) - 1:
+                    time.sleep(TIME_BETWEEN_PROJECT_CHECKS)
+
+            print(f"[AUTOMATION] Completed automated check. Checked {len(ARTS_DATA['arts'])} projects.")
+        except Exception as e:
+            print(f"[AUTOMATION] Error during automated check: {e}")
+        finally:
+            print(f"[AUTOMATION] Next check in {cooldown} seconds")
+            time.sleep(cooldown)
+
+
 def main(args: list):
     if len(args) == 3 and args[1] == "--check":
         if args[2] == "all":
@@ -284,6 +328,7 @@ def main(args: list):
     if len(args) == 1:
         print("Starting server...")
         try:
+            threading.Thread(target=automated_check_loop, daemon=True).start()
             app.run(host='0.0.0.0', port=5000) # , debug=True
         except KeyboardInterrupt:
             print("Detected Ctrl + C")

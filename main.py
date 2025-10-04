@@ -293,30 +293,33 @@ def automated_check_loop():
     """
     global ARTS_DATA
     
-    while ARTS_DATA.get("automated_checks", False):
-        load_arts_data()
-        cooldown = ARTS_DATA.get("cooldown_between_checks", 300)
-        
-        try:
-            print(f"[AUTOMATION] Starting automated check at {time.strftime('%Y-%m-%d %H:%M:%S')}")
-            for i, name in enumerate(ARTS_DATA["arts"]):
-                if not ARTS_DATA["arts"][name]["track"]:
-                    continue
-                
-                path = f"data/{name}/"
-                os.makedirs(path, exist_ok=True)
-                
-                WPLACE.check_change(name)
-                
-                if i < len(ARTS_DATA["arts"]) - 1:
-                    time.sleep(TIME_BETWEEN_PROJECT_CHECKS)
+    while True:
+        if ARTS_DATA.get("automated_checks", False):
+            load_arts_data()
+            cooldown = ARTS_DATA.get("cooldown_between_checks", 300)
+            
+            try:
+                print(f"[AUTOMATION] Starting automated check at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+                for i, name in enumerate(ARTS_DATA["arts"]):
+                    if not ARTS_DATA["arts"][name]["track"]:
+                        continue
+                    
+                    path = f"data/{name}/"
+                    os.makedirs(path, exist_ok=True)
+                    
+                    WPLACE.check_change(name)
+                    
+                    if i < len(ARTS_DATA["arts"]) - 1:
+                        time.sleep(TIME_BETWEEN_PROJECT_CHECKS)
 
-            print(f"[AUTOMATION] Completed automated check. Checked {len(ARTS_DATA['arts'])} projects.")
-        except Exception as e:
-            print(f"[AUTOMATION] Error during automated check: {e}")
-        finally:
-            print(f"[AUTOMATION] Next check in {cooldown} seconds")
-            time.sleep(cooldown)
+                print(f"[AUTOMATION] Completed automated check. Checked {len(ARTS_DATA['arts'])} projects.")
+            except Exception as e:
+                print(f"[AUTOMATION] Error during automated check: {e}")
+            finally:
+                print(f"[AUTOMATION] Next check in {cooldown} seconds")
+                time.sleep(cooldown)
+        else:
+            time.sleep(10)  # Sleep for a while before checking again
 
 
 def main(args: list):

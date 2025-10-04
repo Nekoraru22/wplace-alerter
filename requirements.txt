@@ -1,5 +1,10 @@
 colorama==0.4.6
-opencv-python==4.12.0.88
+deprecated==1.2.18
+Flask==3.1.2
+flask_cors==6.0.1
+numpy==2.3.3
+opencv_python==4.12.0.88
 Pillow==11.3.0
-requests==2.32.4
-selenium==4.35.0
+pydantic==2.11.10
+Requests==2.32.5
+selenium==4.36.0

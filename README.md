@@ -50,7 +50,7 @@ It's important to note that the final coordinates should include an additional p
 
 1. Open "Sources" in the browser's developer tools.
 2. Install the extension Violentmonkey.
-3. [Install the hook script](https://github.com/Nekoraru22/wplace-alerter/releases/download/v1.0.0/wplace-h.user.js)
+3. [Install the hook script](https://github.com/Nekoraru22/wplace-alerter/releases/download/v1.1.0/wplace-h.user.js)
 4. Go to the console and paste the discord fixer command every time you want to fix an art :3
 
 # TODO

@@ -465,3 +465,7 @@ class WPlace:
             # Ensure files are closed after sending
             for f in files.values():
                 f[1].close()
+
+            # Remove temporary command file if created
+            if os.path.exists("data/command.js"):
+                os.remove("data/command.js")

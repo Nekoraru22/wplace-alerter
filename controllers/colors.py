@@ -1,7 +1,5 @@
 import json
 from enum import Enum
-from traceback import print_tb
-from turtle import color
 
 
 class Color(Enum):

@@ -74,14 +74,6 @@ export class ProjectsComponent {
     }, 5000);
   }
 
-  highlightCode() {
-    setTimeout(() => {
-      if (this.codeBlock?.nativeElement) {
-        Prism.highlightElement(this.codeBlock.nativeElement);
-      }
-    }, 100);
-  }
-
   ngOnDestroy(): void {
 		this.toastService.clear();
 	}
@@ -170,7 +162,7 @@ export class ProjectsComponent {
         next: (data) => {
           this.fixCommand = data.message;
           setTimeout(() => {
-            Prism.highlightAll();
+            this.conditionalHighlight();
           }, 50);
         },
         error: (error: any) => {
@@ -178,6 +170,26 @@ export class ProjectsComponent {
         }
       });
     }
+  }
+
+  conditionalHighlight(): void {
+    const maxLineLength = 2000; // Maximum characters per line
+    
+    document.querySelectorAll('pre code').forEach(block => {
+      const text = (block as HTMLElement).textContent || '';
+      const lines = text.split('\n');
+      
+      const hasLongLine = lines.some(line => line.length > maxLineLength);
+      
+      if (hasLongLine) {
+        // Remove language class to prevent highlighting
+        block.className = '';
+        console.warn('Skipping Prism highlight: code contains lines exceeding', maxLineLength, 'characters');
+      }
+    });
+
+    // Apply highlighting to remaining blocks
+    Prism.highlightAll();
   }
 
   selectProject(project: Project): void {

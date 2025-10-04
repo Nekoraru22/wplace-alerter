@@ -10,7 +10,7 @@ import { Project, ColorSetting, CheckResponse, AutomationSettings } from '../int
   providedIn: 'root'
 })
 export class ServerServiceService {
-  private baseUrl = 'http://localhost:5000';
+  private baseUrl = ''; // http://localhost:5000
 
   constructor(private http: HttpClient) { }
 

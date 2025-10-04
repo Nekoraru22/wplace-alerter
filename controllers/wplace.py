@@ -138,10 +138,6 @@ class WPlace:
                     }});
                 }});
                 document.querySelector('button.btn-lg.relative').__click();
-                if (pixelData.length > charges) {{
-                    console.log("Not enough charges to place all pixels. Remaining pixels:");
-                    console.log(pixelData.slice(charges));
-                }}
             }}, 3000);
         """).strip()
 
@@ -385,6 +381,7 @@ class WPlace:
             else:
                 print(Fore.LIGHTRED_EX + f"Detected {len(changed)} changed pixels!")
                 message = f"Detected {len(changed)} changed pixels!"
+                logs += f"Detected {len(changed)} changed pixels!\n"
                 art["griefed"] = True
 
             for pixel in changed:

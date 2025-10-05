@@ -389,12 +389,13 @@ class WPlace:
                 old_color_name, old_color_id, _ = get_color_id(pixel['old_color'])
                 logs += f"Pixel changed at X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} from {old_color_name}(id: {old_color_id}) to {new_color_name}(id: {new_color_id})\n"
 
-            self.send_alert(
-                f"# ¡ALERT! {len(changed)} Pixels changed!!! :< (Before, After)\n\n## Command to fix the pixels:\n",
-                self.generate_command(changed, coords, path, api_image),
-                f"{path}original.png",
-                f"{path}new.png"
-            )
+            if art["track"]:
+                self.send_alert(
+                    f"# ¡ALERT! {len(changed)} Pixels changed!!! :< (Before, After)\n\n## Command to fix the pixels:\n",
+                    self.generate_command(changed, coords, path, api_image),
+                    f"{path}original.png",
+                    f"{path}new.png"
+                )
         else:
             if art["griefed"]:
                 message = "Pixels restored to original state."

@@ -24,6 +24,8 @@ def load_arts_data():
     try:
         with open('data/arts.json') as file:
             ARTS_DATA = json.load(file)
+    except Exception as e:
+        print(f"Error loading arts data: {e}")
     finally:
         __semaforo.release()
 
@@ -33,6 +35,8 @@ def save_arts_data():
     try:
         with open('data/arts.json', 'w') as file:
             json.dump(ARTS_DATA, file, indent=4)
+    except Exception as e:
+        print(f"Error saving arts data: {e}")
     finally:
         __semaforo.release()
 
@@ -117,8 +121,7 @@ def edit_project(project):
                 ARTS_DATA["arts"][project][key] = data[key]
 
         # Save changes to file
-        with open('data/arts.json', 'w') as file:
-            json.dump(ARTS_DATA, file, indent=4)
+        save_arts_data()
     except Exception as e:
         return jsonify(message=str(e)), 400
     return jsonify(message=f"Project {project} edited successfully."), 200
@@ -153,16 +156,14 @@ def add_project():
         }
 
         # Save changes to file
-        with open('data/arts.json', 'w+') as file:
-            json.dump(ARTS_DATA, file, indent=4)
-            time.sleep(1)  # Ensure file is written before proceeding
+        save_arts_data()
 
-            # Check for changes after adding
-            if validated_project.track:
-                path = f"data/{name}/"
-                os.makedirs(path, exist_ok=True)
-                _, response = WPLACE.check_change(name)
-                return jsonify(message=f"Project {name} added and checked successfully.", response=response), 200
+        # Check for changes after adding
+        if validated_project.track:
+            path = f"data/{name}/"
+            os.makedirs(path, exist_ok=True)
+            _, response = WPLACE.check_change(name)
+            return jsonify(message=f"Project {name} added and checked successfully.", response=response), 200
     except ValidationError as e:
         errors = []
         for error in e.errors():
@@ -187,8 +188,7 @@ def delete_project(project):
         del ARTS_DATA["arts"][project]
 
         # Save changes to file
-        with open('data/arts.json', 'w') as file:
-            json.dump(ARTS_DATA, file, indent=4)
+        save_arts_data()
 
         # Delete project folder
         path = f"data/{project}/"

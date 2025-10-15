@@ -9,8 +9,8 @@ from flask_cors import CORS
 from pydantic import ValidationError
 from flask import Flask, Blueprint, request, jsonify
 
-from controllers.wplace import WPlace, WPlaceArtInterface
 from controllers.colors import Color, color_config
+from controllers.wplace import WPlace, WPlaceArtInterface
 
 
 # Load arts data
@@ -231,6 +231,7 @@ def get_automation_info():
 
 @app.put('/projects/automation')
 def update_automation_info():
+    load_arts_data()
     data = request.json
     if not data:
         return jsonify(message="No data provided."), 400
@@ -244,6 +245,7 @@ def update_automation_info():
 
 @app.put('/projects/automation/toggle')
 def toggle_automation_checks():
+    load_arts_data()
     data = request.json
     if not data or "automated_checks" not in data:
         return jsonify(message="No data provided."), 400
@@ -292,8 +294,8 @@ def automated_check_loop():
     global ARTS_DATA
     
     while True:
+        load_arts_data()
         if ARTS_DATA.get("automated_checks", False):
-            load_arts_data()
             cooldown = ARTS_DATA.get("cooldown_between_checks", 300)
             
             try:

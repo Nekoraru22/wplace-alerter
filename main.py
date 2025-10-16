@@ -23,7 +23,9 @@ def load_arts_data():
     __semaforo.acquire()
     try:
         with open('data/arts.json', 'r') as file:
-            ARTS_DATA = json.load(file)
+            new_data = json.load(file)
+            ARTS_DATA.clear()
+            ARTS_DATA.update(new_data)
     except Exception as e:
         print(f"Error loading arts data: {e}")
     finally:

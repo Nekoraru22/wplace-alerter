@@ -22,7 +22,7 @@ def load_arts_data():
     global ARTS_DATA
     __semaforo.acquire()
     try:
-        with open('data/arts.json') as file:
+        with open('data/arts.json', 'r') as file:
             ARTS_DATA = json.load(file)
     except Exception as e:
         print(f"Error loading arts data: {e}")
@@ -33,7 +33,7 @@ def save_arts_data():
     global ARTS_DATA
     __semaforo.acquire()
     try:
-        with open('data/arts.json', 'w') as file:
+        with open('data/arts.json', 'w+') as file:
             json.dump(ARTS_DATA, file, indent=4)
     except Exception as e:
         print(f"Error saving arts data: {e}")

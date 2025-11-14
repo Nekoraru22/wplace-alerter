@@ -125,8 +125,8 @@ class WPlace:
             const tiles = {json.dumps(api_tiles)};
             const t0 = tiles[0];
             const t1 = tiles[1];
-            const charges = Math.trunc(data.charges);
-            // moveTo(t0*1000 + pixelData[0][0], t1*1000 + pixelData[0][1]);
+            const charges = Math.trunc(data.user.charges);
+            moveTo(t0*1000 + pixelData[0][0], t1*1000 + pixelData[0][1]);
             // data.ctx.map.showTileBoundaries = true;
             setTimeout(() => {{
                 pixelData.slice(0, charges).forEach(p => {{
@@ -134,7 +134,7 @@ class WPlace:
                         "color": {{ "r": p[2], "g": p[3], "b": p[4], "a": p[5] }},
                         "tile": tiles,
                         "pixel": [p[0], p[1]],
-                        "season": 0, // TODO data.ctx.season
+                        "season": data.ctx.season,
                         "colorIdx": p[6]
                     }});
                 }});

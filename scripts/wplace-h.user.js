@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://wplace.live/*
 // @grant       none
-// @version     1.7
+// @version     2.0
 // @author      Nekoraru22
 // @description Intercepts a canvas method to trigger the debugger inside the target class's scope.
 // @run-at      document-start
@@ -20,35 +20,53 @@
         try {
             if (key.startsWith && key.startsWith('t=') && value.color !== undefined) {
                 window.o = this;
-                console.log('Pixels Map Hooked');
+                console.log('😺 Pixel Map Hooked');
                 Map.prototype.set = originalMapSet;
             }
         } catch { }
         return originalMapSet.call(this, key, value);
     };
 
-    // Hook WeakMap.prototype.set
-    const originalWeakMapSet = WeakMap.prototype.set;
-    window.data = {};
+    // Hook Map.prototype.get
+    const originalMapGet = Map.prototype.get;
+    window.data = window.data || {};
 
-    WeakMap.prototype.set = function(key, value) {
+    Map.prototype.get = function(key) {
+        const value = originalMapGet.call(this, key);
+
         try {
-            if (key?.current?.entries?.().next?.().value?.[0].reactions?.length > 0) {
-                for (const i in key.current.entries().next().value[0].reactions) {
-                    const x = key.current.entries().next().value[0].reactions[i];
-                    const o = x?.ctx?.s;
-                    if (o !== undefined && o.value === undefined) {
-                        if (o.user) {
-                            window.data.user = o;
-                            console.log('User function Hooked');
-                        } else if (o.crosshair) {
-                            window.data.ctx = o;
-                            console.log('Ctx function Hooked');
+            if (value && value.reactions && Array.isArray(value.reactions)) {
+                for (const reaction of value.reactions) {
+                    if (reaction && reaction.ctx?.s) {
+                        const s = reaction.ctx.s;
+                        if (s.crosshair && s.map && !window.data.ctx) {
+                            console.log('🌍 Map functions hooked');
+                            window.data.ctx = s;
+                            break;
                         }
                     }
                 }
             }
-        } catch { }
+        } catch {}
+
+        return value;
+    };
+
+    // Hook WeakMap.prototype.set
+    const originalWeakMapSet = WeakMap.prototype.set;
+
+    WeakMap.prototype.set = function(key, value) {
+        if (key && typeof key === 'object') {
+            try {
+                // User class
+                const hasChannel = key.channel instanceof BroadcastChannel;
+                const hasRefresh = typeof key.refresh === 'function';
+                if ((hasChannel || hasRefresh) && !window.data.user) {
+                    console.log('🎯 User Hooked');
+                    window.data.user = key;
+                }
+            } catch {}
+        }
         return originalWeakMapSet.call(this, key, value);
     };
 

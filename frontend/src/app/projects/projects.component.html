@@ -191,7 +191,7 @@
                     [(ngModel)]="newProject.name"
                     name="projectName-modal"
                     required
-                    (blur)="newProject.name = newProject.name.trim()"
+                    (ngModelChange)="newProject.name = newProject.name.trim()"
                     #projectName="ngModel">
                 @if (projectName.invalid && projectName.touched) {
                     <small class="text-danger">Project name is required</small>
@@ -203,7 +203,7 @@
                     [(ngModel)]="newProject.api_image"
                     name="apiImage-modal"
                     required
-                    (blur)="newProject.api_image = newProject.api_image.trim()"
+                    (ngModelChange)="newProject.api_image = newProject.api_image.trim()"
                     #apiImage="ngModel">
                 @if (apiImage.invalid && apiImage.touched) {
                     <small class="text-danger">API Image URL is required</small>
@@ -232,6 +232,7 @@
                             [(ngModel)]="newProject.start_coords.x"
                             name="startCoordsX-modal"
                             required
+                            (ngModelChange)="newProject.start_coords.x = +$event"
                             #startX="ngModel">
                     </div>
                     <div class="col">
@@ -240,6 +241,7 @@
                             [(ngModel)]="newProject.start_coords.y"
                             name="startCoordsY-modal"
                             required
+                            (ngModelChange)="newProject.start_coords.y = +$event"
                             #startY="ngModel">
                     </div>
                 </div>
@@ -253,6 +255,7 @@
                             [(ngModel)]="newProject.end_coords.x"
                             name="endCoordsX-modal"
                             required
+                            (ngModelChange)="newProject.end_coords.x = +$event"
                             #endX="ngModel">
                     </div>
                     <div class="col">
@@ -261,6 +264,7 @@
                             [(ngModel)]="newProject.end_coords.y"
                             name="endCoordsY-modal"
                             required
+                            (ngModelChange)="newProject.end_coords.y = +$event"
                             #endY="ngModel">
                     </div>
                 </div>

@@ -136,16 +136,18 @@ export class ProjectsComponent {
       next: (data) => {
         this.toastService.show({ message: data.message });
         data.response!.name = project.name;
-        this.selectedProject = data.response!;
+
+        // Update the project in artsData
         const index = this.artsData.findIndex(p => p.name === project.name);
         if (index !== -1) {
-          this.artsData[index] = this.selectedProject;
+          this.artsData[index] = data.response!;
         }
 
-        // Update timestamp to force image reload
-        this.imageTimestamp = Date.now();
-        
-        if (this.selectedProject) {
+        // Only update selectedProject if this project is already selected
+        if (this.selectedProject?.name === project.name) {
+          this.selectedProject = data.response!;
+          this.editedProject = JSON.parse(JSON.stringify(this.selectedProject));
+          this.imageTimestamp = Date.now();
           this.updateProject(this.selectedProject);
         }
       },

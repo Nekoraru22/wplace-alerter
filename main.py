@@ -120,11 +120,7 @@ def edit_project(project):
             return jsonify(message="No data provided."), 400
         for key in data:
             if key in ARTS_DATA["arts"][project] and key != "name":
-                # Type casting for integer fields
-                if isinstance(ARTS_DATA["arts"][project][key], int):
-                    ARTS_DATA["arts"][project][key] = int(data[key])
-                else:
-                    ARTS_DATA["arts"][project][key] = data[key]
+                ARTS_DATA["arts"][project][key] = data[key]
 
         # Save changes to file
         save_arts_data()

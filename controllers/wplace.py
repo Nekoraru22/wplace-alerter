@@ -217,7 +217,7 @@ class WPlace:
 
         # Check if original and new have the same dimensions
         if original.shape != new.shape:
-            raise ValueError(Fore.LIGHTRED_EX + "Error: Images have different dimensions. Original dimensions: " + str(original.shape) + ", New dimensions: " + str(new.shape))
+            raise ValueError(Fore.LIGHTRED_EX + f"Error: Images have different dimensions. Original dimensions: {original.shape[1]}x{original.shape[0]}, New dimensions: {new.shape[1]}x{new.shape[0]}")
         
         # Find differing pixels
         diff = cv2.absdiff(original, new)

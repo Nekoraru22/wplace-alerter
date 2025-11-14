@@ -80,8 +80,11 @@ def check_project(name):
     os.makedirs(path, exist_ok=True)
 
     # Check for changes
-    message, response = WPLACE.check_change(name)
-    return jsonify(message=message, response=response), 200
+    try:
+        message, response = WPLACE.check_change(name)
+        return jsonify(message=message, response=response), 200
+    except ValueError as e:
+        return jsonify(message=str(e)), 400
 
 
 @app.post('/projects/check')

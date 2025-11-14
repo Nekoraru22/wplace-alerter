@@ -3,11 +3,10 @@
 
     <div class="d-flex w-100 page">
         <div class="section d-flex flex-column projects-box">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>Project List</h2>
-                <button class="btn btn-sm btn-outline-secondary" (click)="toggleProjectOrder()" title="Toggle sort order">
-                    <span *ngIf="reversedOrder">↓</span>
-                    <span *ngIf="!reversedOrder">↑</span>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="m-0">Project List</h2>
+                <button class="btn btn-outline-primary px-2" (click)="toggleProjectOrder()" title="Toggle sort order">
+                    <span>Toggle Sort Order</span>
                 </button>
             </div>
 

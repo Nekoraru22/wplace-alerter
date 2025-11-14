@@ -233,16 +233,17 @@ export class ProjectsComponent {
 
   saveProjectChanges(): void {
     if (this.selectedProject && this.editedProject && this.hasChanges) {
-      // coordinates must be numbers
+      // Coordinates must be numbers
       this.editedProject.start_coords.x = Number(this.editedProject.start_coords.x);
       this.editedProject.start_coords.y = Number(this.editedProject.start_coords.y);
       this.editedProject.end_coords.x = Number(this.editedProject.end_coords.x);
       this.editedProject.end_coords.y = Number(this.editedProject.end_coords.y);
-      // name and api_image must be trimmed
+
+      // Name and api_image must be trimmed
       this.editedProject.name = this.editedProject.name.trim();
       this.editedProject.api_image = this.editedProject.api_image.trim();
 
-      // send update request
+      // Send update request
       this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
         next: (data) => {
           console.log("Project updated:", data);
@@ -251,11 +252,13 @@ export class ProjectsComponent {
           if (index !== -1) {
             this.artsData[index] = this.selectedProject!;
           }
-          this.hasChanges = false;
           this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
         },
         error: (error: any) => {
-          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 15000 });
+        },
+        complete: () => {
+          this.hasChanges = false;
         }
       });
     }

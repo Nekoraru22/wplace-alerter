@@ -118,10 +118,6 @@ color_config = ColorConfig()
 def get_color_id(rgb):
     rgb_tuple = tuple(rgb)
     for idx, color in enumerate(list(Color)):
-        # Check if transparent
-        if rgb_tuple[3] == 0:
-            return 'TRANSPARENT', 0, color_config.get_bool('TRANSPARENT')
-        # Check other colors
         if color.value[:4] == rgb_tuple:
             return color.name, idx, color_config.get_bool(color.name)
     return None, None, None

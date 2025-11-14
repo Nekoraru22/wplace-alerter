@@ -213,10 +213,13 @@ class WPlace:
 
         # Check if images are loaded successfully
         if original is None or new is None:
-            print(Fore.LIGHTRED_EX + "Error: Could not read one or more image files.")
-            return []
+            raise ValueError(Fore.LIGHTRED_EX + "Error: Could not read one or more image files.")
 
         # Check if original and new have the same dimensions
+        if original.shape != new.shape:
+            raise ValueError(Fore.LIGHTRED_EX + "Error: Images have different dimensions. Original dimensions: " + str(original.shape) + ", New dimensions: " + str(new.shape))
+        
+        # Find differing pixels
         diff = cv2.absdiff(original, new)
         ys, xs = np.nonzero(np.any(diff != 0, axis=2))
 

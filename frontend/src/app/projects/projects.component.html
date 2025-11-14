@@ -190,7 +190,6 @@
                     [(ngModel)]="newProject.name"
                     name="projectName-modal"
                     required
-                    (ngModelChange)="newProject.name = newProject.name.trim()"
                     #projectName="ngModel">
                 @if (projectName.invalid && projectName.touched) {
                     <small class="text-danger">Project name is required</small>
@@ -202,7 +201,6 @@
                     [(ngModel)]="newProject.api_image"
                     name="apiImage-modal"
                     required
-                    (ngModelChange)="newProject.api_image = newProject.api_image.trim()"
                     #apiImage="ngModel">
                 @if (apiImage.invalid && apiImage.touched) {
                     <small class="text-danger">API Image URL is required</small>
@@ -240,7 +238,6 @@
                             [(ngModel)]="newProject.start_coords.y"
                             name="startCoordsY-modal"
                             required
-                            (ngModelChange)="newProject.start_coords.y = +$event"
                             #startY="ngModel">
                     </div>
                 </div>
@@ -254,7 +251,6 @@
                             [(ngModel)]="newProject.end_coords.x"
                             name="endCoordsX-modal"
                             required
-                            (ngModelChange)="newProject.end_coords.x = +$event"
                             #endX="ngModel">
                     </div>
                     <div class="col">

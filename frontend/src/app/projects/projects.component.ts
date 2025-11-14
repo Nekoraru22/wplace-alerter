@@ -233,6 +233,16 @@ export class ProjectsComponent {
 
   saveProjectChanges(): void {
     if (this.selectedProject && this.editedProject && this.hasChanges) {
+      // coordinates must be numbers
+      this.editedProject.start_coords.x = Number(this.editedProject.start_coords.x);
+      this.editedProject.start_coords.y = Number(this.editedProject.start_coords.y);
+      this.editedProject.end_coords.x = Number(this.editedProject.end_coords.x);
+      this.editedProject.end_coords.y = Number(this.editedProject.end_coords.y);
+      // name and api_image must be trimmed
+      this.editedProject.name = this.editedProject.name.trim();
+      this.editedProject.api_image = this.editedProject.api_image.trim();
+
+      // send update request
       this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
         next: (data) => {
           console.log("Project updated:", data);

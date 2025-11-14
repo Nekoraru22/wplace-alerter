@@ -26,7 +26,7 @@ class Position(BaseModel):
     y: int = Field(..., ge=0)
 
 class WPlaceArtInterface(BaseModel):
-    name: str = Field(..., min_length=1, max_length=200, pattern=r'^[a-zA-Z0-9_-]+$')
+    name: str = Field(..., min_length=1, max_length=200, pattern=r'^[a-zA-Z0-9_\- ]+$')
     track: bool
     check_transparent_pixels: bool
     last_checked: str = ""
@@ -66,7 +66,7 @@ class WPlace:
         return (0, 0)
 
 
-    def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], path: str, api_image: str) -> str:
+    def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], path: str, api_image: str) -> Tuple[str, str]:
         """
         Generate a compact js command to fix the pixels
 
@@ -77,13 +77,14 @@ class WPlace:
             api_image: The API image URL
 
         Returns:
-            str: The generated js command
+            The generated js command
         """
         api_tiles = self.get_tiles_from_api_url(api_image)
-        
+
         # Compact data structure: only essential info
         compact_data = []
-        
+        skip_logs = ""
+
         counter = 1
         for pixel in pixels:
             # Pixel absolute position
@@ -97,11 +98,11 @@ class WPlace:
             # Avoid paid color pixels
             if color_idx == None:
                 if pixel["old_color"][3] != 0:
-                    print(Fore.LIGHTRED_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color")
+                    skip_logs += f"⚠️ Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color\n"
                 counter += 1
                 continue
             elif not owned:
-                print(Fore.LIGHTYELLOW_EX + f"Skipping pixel {counter}/{len(pixels)}: {pixel} for being a paid color ({color_idx})")
+                skip_logs += f"⚠️ Skipping pixel {counter}/{len(pixels)}: {pixel} for being a paid color ({color_idx})\n"
                 counter += 1
                 continue
 
@@ -145,8 +146,8 @@ class WPlace:
         # Save command to file
         with open(f"{path}/fix_pixels.js", "w") as f:
             f.write(js_content)
-        
-        return js_content
+
+        return js_content, skip_logs
 
     
     def crop_image(self, image_path: str, crop_box: Tuple[int, int, int, int]) -> None:
@@ -398,7 +399,11 @@ class WPlace:
                 old_color_name, old_color_id, _ = get_color_id(pixel['old_color'])
                 logs += f"Pixel changed at X={coords[0] + int(str(pixel['x']))}, Y={coords[1] + int(str(pixel['y']))} from {old_color_name}(id: {old_color_id}) to {new_color_name}(id: {new_color_id})\n"
 
-            command = self.generate_command(changed, coords, path, api_image)
+            result = self.generate_command(changed, coords, path, api_image)
+            command = result[0]
+            skip_logs = result[1]
+            logs += skip_logs
+
             if art["track"]:
                 self.send_alert(
                     f"# ¡ALERT! {len(changed)} Pixels changed!!! :< (Before, After)\n\n## Command to fix the pixels:\n",

@@ -5,10 +5,14 @@
         <div class="section d-flex flex-column projects-box">
             <div class="d-flex justify-content-between align-items-center">
                 <h2>Project List</h2>
+                <button class="btn btn-sm btn-outline-secondary" (click)="toggleProjectOrder()" title="Toggle sort order">
+                    <span *ngIf="reversedOrder">↓</span>
+                    <span *ngIf="!reversedOrder">↑</span>
+                </button>
             </div>
 
             <div class="flex-grow-1 overflow-auto pb-3 pt-3">
-                @for (project of artsData; track project) {
+                @for (project of displayedProjects; track project) {
                     <div class="card mb-3" style="cursor: pointer;" (click)="selectProject(project)">
                         <div class="card-body d-flex justify-content-between align-items-center">
                             <div class="d-flex justify-content-between align-items-center w-100">
@@ -22,7 +26,7 @@
                                         <span class="text-muted small">Last checked: {{ project.last_checked || 'Never' }}</span>
                                     </div>
                                 </div>
-                                <button class="btn btn-outline-primary" (click)="checkProject(project, $event)">Check</button>
+                                <button class="btn btn-outline-primary" (click)="$event.stopPropagation(); checkProject(project, $event)">Check</button>
                             </div>
                         </div>
                     </div>
@@ -54,7 +58,7 @@
                             </div>
                         }
                         <img
-                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/original.png'"
+                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/original.png?t=' + imageTimestamp"
                             alt="Original Image"
                             class="project-image px-3"
                             [style.display]="isImgLoading ? 'none' : 'block'"
@@ -70,7 +74,7 @@
                             </div>
                         }
                         <img
-                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/new.png'"
+                            [src]="serverService.getBaseUrl() + 'data/' + selectedProject.name + '/new.png?t=' + imageTimestamp"
                             alt="New Image"
                             class="project-image px-3"
                             [style.display]="isImgLoading ? 'none' : 'block'"
@@ -183,10 +187,11 @@
 		<form #newProjectForm="ngForm">
             <div class="mb-3">
                 <label for="projectName-modal" class="form-label">Project Name</label>
-                <input type="text" class="form-control" id="projectName-modal" 
-                    [(ngModel)]="newProject.name" 
-                    name="projectName-modal" 
+                <input type="text" class="form-control" id="projectName-modal"
+                    [(ngModel)]="newProject.name"
+                    name="projectName-modal"
                     required
+                    (blur)="newProject.name = newProject.name.trim()"
                     #projectName="ngModel">
                 @if (projectName.invalid && projectName.touched) {
                     <small class="text-danger">Project name is required</small>
@@ -194,10 +199,11 @@
             </div>
             <div class="mb-3">
                 <label for="apiImage-modal" class="form-label">API Image URL</label>
-                <input type="text" class="form-control" id="apiImage-modal" 
-                    [(ngModel)]="newProject.api_image" 
-                    name="apiImage-modal" 
+                <input type="text" class="form-control" id="apiImage-modal"
+                    [(ngModel)]="newProject.api_image"
+                    name="apiImage-modal"
                     required
+                    (blur)="newProject.api_image = newProject.api_image.trim()"
                     #apiImage="ngModel">
                 @if (apiImage.invalid && apiImage.touched) {
                     <small class="text-danger">API Image URL is required</small>
@@ -205,14 +211,14 @@
             </div>
             <div class="mb-3">
                 <div class="form-check form-check-inline">
-                    <input type="checkbox" class="form-check-input" id="tracking-modal" 
-                        [(ngModel)]="newProject.track" 
+                    <input type="checkbox" class="form-check-input" id="tracking-modal"
+                        [(ngModel)]="newProject.track"
                         name="tracking-modal">
                     <label class="form-check-label" for="tracking-modal">Tracking</label>
                 </div>
                 <div class="form-check form-check-inline ms-3">
-                    <input type="checkbox" class="form-check-input" id="checkTransparent-modal" 
-                        [(ngModel)]="newProject.check_transparent_pixels" 
+                    <input type="checkbox" class="form-check-input" id="checkTransparent-modal"
+                        [(ngModel)]="newProject.check_transparent_pixels"
                         name="checkTransparent-modal">
                     <label class="form-check-label" for="checkTransparent-modal">Check Transparent</label>
                 </div>
@@ -222,17 +228,17 @@
                 <div class="row g-2">
                     <div class="col">
                         <label class="form-label small" for="startCoordsX-modal">X:</label>
-                        <input type="number" class="form-control" id="startCoordsX-modal" 
-                            [(ngModel)]="newProject.start_coords.x" 
-                            name="startCoordsX-modal" 
+                        <input type="number" class="form-control" id="startCoordsX-modal"
+                            [(ngModel)]="newProject.start_coords.x"
+                            name="startCoordsX-modal"
                             required
                             #startX="ngModel">
                     </div>
                     <div class="col">
                         <label class="form-label small" for="startCoordsY-modal">Y:</label>
-                        <input type="number" class="form-control" id="startCoordsY-modal" 
-                            [(ngModel)]="newProject.start_coords.y" 
-                            name="startCoordsY-modal" 
+                        <input type="number" class="form-control" id="startCoordsY-modal"
+                            [(ngModel)]="newProject.start_coords.y"
+                            name="startCoordsY-modal"
                             required
                             #startY="ngModel">
                     </div>
@@ -243,17 +249,17 @@
                 <div class="row g-2">
                     <div class="col">
                         <label class="form-label small" for="endCoordsX-modal">X:</label>
-                        <input type="number" class="form-control" id="endCoordsX-modal" 
-                            [(ngModel)]="newProject.end_coords.x" 
-                            name="endCoordsX-modal" 
+                        <input type="number" class="form-control" id="endCoordsX-modal"
+                            [(ngModel)]="newProject.end_coords.x"
+                            name="endCoordsX-modal"
                             required
                             #endX="ngModel">
                     </div>
                     <div class="col">
                         <label class="form-label small" for="endCoordsY-modal">Y:</label>
-                        <input type="number" class="form-control" id="endCoordsY-modal" 
-                            [(ngModel)]="newProject.end_coords.y" 
-                            name="endCoordsY-modal" 
+                        <input type="number" class="form-control" id="endCoordsY-modal"
+                            [(ngModel)]="newProject.end_coords.y"
+                            name="endCoordsY-modal"
                             required
                             #endY="ngModel">
                     </div>

@@ -59,6 +59,8 @@ export class ProjectsComponent {
 
   isImgLoading: boolean = true;
   checkingAll: boolean = false;
+  imageTimestamp: number = Date.now();
+  reversedOrder: boolean = true;
 
   ngOnInit(): void {
     this.serverService.getAutomationSettings().subscribe((data) => {
@@ -78,6 +80,10 @@ export class ProjectsComponent {
 		this.toastService.clear();
 	}
 
+  get displayedProjects(): Project[] {
+    return this.reversedOrder ? [...this.artsData].reverse() : this.artsData;
+  }
+
   listProjects(): void {
     this.serverService.listProjects().subscribe({
       next: (data) => {
@@ -87,6 +93,10 @@ export class ProjectsComponent {
         this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
       }
     });
+  }
+
+  toggleProjectOrder(): void {
+    this.reversedOrder = !this.reversedOrder;
   }
 
   checkAllProjects(): void {
@@ -108,6 +118,9 @@ export class ProjectsComponent {
             this.artsData[index] = project;
           }
         });
+
+        // Update timestamp to force image reload
+        this.imageTimestamp = Date.now();
       },
       error: (error: any) => {
         this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
@@ -128,6 +141,10 @@ export class ProjectsComponent {
         if (index !== -1) {
           this.artsData[index] = this.selectedProject;
         }
+
+        // Update timestamp to force image reload
+        this.imageTimestamp = Date.now();
+        
         if (this.selectedProject) {
           this.updateProject(this.selectedProject);
         }
@@ -205,6 +222,8 @@ export class ProjectsComponent {
       this.fixCommand = null;
     }
 
+    // Update timestamp to force image reload when selecting project
+    this.imageTimestamp = Date.now();
     this.updateProject(project);
   }
 

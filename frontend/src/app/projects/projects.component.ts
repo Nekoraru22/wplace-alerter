@@ -130,25 +130,21 @@ export class ProjectsComponent {
   }
 
   checkProject(project: Project, event: MouseEvent): void {
-    event.stopPropagation();
-
     this.serverService.checkProject(project.name).subscribe({
       next: (data) => {
         this.toastService.show({ message: data.message });
         data.response!.name = project.name;
-
-        // Update the project in artsData
+        const updatedProject = data.response!;
         const index = this.artsData.findIndex(p => p.name === project.name);
         if (index !== -1) {
-          this.artsData[index] = data.response!;
+          this.artsData[index] = updatedProject;
         }
 
-        // Only update selectedProject if this project is already selected
-        if (this.selectedProject?.name === project.name) {
-          this.selectedProject = data.response!;
-          this.editedProject = JSON.parse(JSON.stringify(this.selectedProject));
-          this.imageTimestamp = Date.now();
-          this.updateProject(this.selectedProject);
+        // Update timestamp to force image reload
+        this.imageTimestamp = Date.now();
+        
+        if (this.selectedProject && this.selectedProject.name === updatedProject.name) {
+          this.updateProject(updatedProject);
         }
       },
       error: (error: any) => {

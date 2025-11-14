@@ -226,14 +226,16 @@ class WPlace:
             new_color = (int(r), int(g), int(b), int(a))
             old_color = (int(original[y, x][2]), int(original[y, x][1]), int(original[y, x][0]), int(original[y, x][3]))
 
+            # Dont check transparent pixels if configured
+            if not self.arts_data["arts"][project]["check_transparent_pixels"] and old_color[3] == 0:
+                continue
+
             # Normalice transparent pixel representation
-            if new_color[3] == 0:
-                new_color = (0, 0, 0, 0)
             if old_color[3] == 0:
                 old_color = (0, 0, 0, 0)
 
-            # Dont check transparent pixels if configured
-            if not self.arts_data["arts"][project]["check_transparent_pixels"] and old_color[3] == 0:
+            # If both colors are the same, skip
+            if new_color == old_color:
                 continue
 
             changed.append({

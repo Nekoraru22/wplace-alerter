@@ -227,6 +227,7 @@ export class ProjectsComponent {
 
   onProjectChange(): void {
     if (this.selectedProject && this.editedProject) {
+      console.log(JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject), JSON.stringify(this.selectedProject), JSON.stringify(this.editedProject));
       this.hasChanges = JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject);
     }
   }
@@ -243,29 +244,29 @@ export class ProjectsComponent {
       // Send update request with the cleaned data
       this.serverService.updateProject(this.selectedProject.name, updatedProject).subscribe({
         next: (data) => {
-          // Only update original after successful save
-          Object.assign(this.selectedProject!, updatedProject);
-          
+          // Update selectedProject with a deep copy
+          this.selectedProject = JSON.parse(JSON.stringify(updatedProject));
+
           const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
           if (index !== -1) {
             this.artsData[index] = this.selectedProject!;
           }
-          
-          // Update editedProject to match
-          Object.assign(this.editedProject!, updatedProject);
-          
+
+          // Update editedProject with a deep copy to avoid shared references
+          this.editedProject = JSON.parse(JSON.stringify(updatedProject));
+
           this.hasChanges = false;
-          this.toastService.show({ 
-            message: data.message, 
-            classname: 'bg-success text-light', 
-            delay: 5000 
+          this.toastService.show({
+            message: data.message,
+            classname: 'bg-success text-light',
+            delay: 5000
           });
         },
         error: (error: any) => {
-          this.toastService.show({ 
-            message: error.error.message, 
-            classname: 'bg-danger text-light', 
-            delay: 5000 
+          this.toastService.show({
+            message: error.error.message,
+            classname: 'bg-danger text-light',
+            delay: 5000
           });
         }
       });

@@ -369,7 +369,7 @@ class WPlace:
         if not os.path.exists(f"{path}original.png"):
             with open(f"{path}original.png", 'wb') as f:
                 f.write(open(f"{path}new.png", 'rb').read())
-            raise Exception(Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.")
+            print(Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.")
 
         # Check for changes
         logs = str()

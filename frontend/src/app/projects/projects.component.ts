@@ -4,6 +4,7 @@ import { NgbModal, NgbModalConfig } from '@ng-bootstrap/ng-bootstrap';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { CommonModule } from '@angular/common';
 import { ClipboardModule, Clipboard } from '@angular/cdk/clipboard';
+import { finalize } from 'rxjs';
 
 import { ColorSetting, Project } from '../interfaces/arts.interface';
 
@@ -244,22 +245,25 @@ export class ProjectsComponent {
       this.editedProject.api_image = this.editedProject.api_image.trim();
 
       // Send update request
-      this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
-        next: (data) => {
-          const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
-          if (index !== -1) {
-            this.artsData[index] = this.selectedProject!;
+      this.serverService.updateProject(this.selectedProject.name, this.editedProject)
+        .pipe(
+          finalize(() => {
+            Object.assign(this.selectedProject!, this.editedProject!);
+            this.hasChanges = false;
+          })
+        )
+        .subscribe({
+          next: (data) => {
+            const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
+            if (index !== -1) {
+              this.artsData[index] = this.selectedProject!;
+            }
+            this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
+          },
+          error: (error: any) => {
+            this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 15000 });
           }
-          this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
-        },
-        error: (error: any) => {
-          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 15000 });
-        },
-        complete: () => {
-          Object.assign(this.selectedProject!, this.editedProject!);
-          this.hasChanges = false;
-        }
-      });
+        });
     }
   }
 

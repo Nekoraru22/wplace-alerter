@@ -227,33 +227,46 @@ export class ProjectsComponent {
 
   onProjectChange(): void {
     if (this.selectedProject && this.editedProject) {
-      console.log(JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject), JSON.stringify(this.selectedProject), JSON.stringify(this.editedProject));
       this.hasChanges = JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject);
     }
   }
 
   saveProjectChanges(): void {
     if (this.selectedProject && this.editedProject && this.hasChanges) {
-      // Name and api_image must be trimmed
-      this.editedProject.name = this.editedProject.name.trim();
-      this.editedProject.api_image = this.editedProject.api_image.trim();
-      this.selectedProject.name = this.selectedProject.name.trim();
-      this.selectedProject.api_image = this.selectedProject.api_image.trim();
+      // Create a clean copy with trimmed values for the API request
+      const updatedProject = {
+        ...this.editedProject,
+        name: this.editedProject.name.trim(),
+        api_image: this.editedProject.api_image.trim()
+      };
 
-      // Send update request
-      this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
+      // Send update request with the cleaned data
+      this.serverService.updateProject(this.selectedProject.name, updatedProject).subscribe({
         next: (data) => {
-          Object.assign(this.selectedProject!, this.editedProject!);
+          // Only update original after successful save
+          Object.assign(this.selectedProject!, updatedProject);
+          
           const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
           if (index !== -1) {
             this.artsData[index] = this.selectedProject!;
           }
+          
+          // Update editedProject to match
+          Object.assign(this.editedProject!, updatedProject);
+          
           this.hasChanges = false;
-          this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
+          this.toastService.show({ 
+            message: data.message, 
+            classname: 'bg-success text-light', 
+            delay: 5000 
+          });
         },
         error: (error: any) => {
-          this.hasChanges = false;
-          this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+          this.toastService.show({ 
+            message: error.error.message, 
+            classname: 'bg-danger text-light', 
+            delay: 5000 
+          });
         }
       });
     }

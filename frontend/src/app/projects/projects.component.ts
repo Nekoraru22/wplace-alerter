@@ -246,8 +246,6 @@ export class ProjectsComponent {
       // Send update request
       this.serverService.updateProject(this.selectedProject.name, this.editedProject).subscribe({
         next: (data) => {
-          console.log("Project updated:", data);
-          Object.assign(this.selectedProject!, this.editedProject!);
           const index = this.artsData.findIndex(p => p.name === this.selectedProject!.name);
           if (index !== -1) {
             this.artsData[index] = this.selectedProject!;
@@ -258,6 +256,7 @@ export class ProjectsComponent {
           this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 15000 });
         },
         complete: () => {
+          Object.assign(this.selectedProject!, this.editedProject!);
           this.hasChanges = false;
         }
       });

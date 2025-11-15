@@ -107,12 +107,12 @@
                         <strong><label for="startCoords" class="form-label">Start Coords</label></strong>
                         <div class="d-flex align-items-center">
                             <label class="me-1" for="startCoordsX">X:</label>
-                            <input type="text" class="form-control" id="startCoordsX" 
+                            <input type="number" class="form-control" id="startCoordsX" 
                                 [(ngModel)]="editedProject.start_coords.x" 
                                 (ngModelChange)="onProjectChange()"
                                 name="startCoordsX">
                             <label class="me-1 ms-2" for="startCoordsY">Y:</label>
-                            <input type="text" class="form-control" id="startCoordsY" 
+                            <input type="number" class="form-control" id="startCoordsY" 
                                 [(ngModel)]="editedProject.start_coords.y" 
                                 (ngModelChange)="onProjectChange()"
                                 name="startCoordsY">
@@ -122,12 +122,12 @@
                         <strong><label for="endCoords" class="form-label">End Coords</label></strong>
                         <div class="d-flex align-items-center">
                             <label class="me-1" for="endCoordsX">X:</label>
-                            <input type="text" class="form-control" id="endCoordsX" 
+                            <input type="number" class="form-control" id="endCoordsX" 
                                 [(ngModel)]="editedProject.end_coords.x" 
                                 (ngModelChange)="onProjectChange()"
                                 name="endCoordsX">
                             <label class="me-1 ms-2" for="endCoordsY">Y:</label>
-                            <input type="text" class="form-control" id="endCoordsY" 
+                            <input type="number" class="form-control" id="endCoordsY" 
                                 [(ngModel)]="editedProject.end_coords.y" 
                                 (ngModelChange)="onProjectChange()"
                                 name="endCoordsY">

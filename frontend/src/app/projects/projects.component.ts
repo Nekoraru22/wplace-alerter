@@ -282,6 +282,10 @@ export class ProjectsComponent {
           this.hasChanges = false;
           console.log("Project deleted:", data, data.message);
           this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
+
+          // Reload projects list
+          this.listProjects();
+          this.selectedProject = null;
         },
         error: (error: any) => {
           this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });

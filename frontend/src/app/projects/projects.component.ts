@@ -227,7 +227,7 @@ export class ProjectsComponent {
 
   onProjectChange(): void {
     if (this.selectedProject && this.editedProject) {
-      console.log(JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject), this.selectedProject, this.editedProject);
+      console.log(JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject), JSON.stringify(this.selectedProject), JSON.stringify(this.editedProject));
       this.hasChanges = JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject);
     }
   }

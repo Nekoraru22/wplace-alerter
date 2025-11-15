@@ -227,6 +227,7 @@ export class ProjectsComponent {
 
   onProjectChange(): void {
     if (this.selectedProject && this.editedProject) {
+      console.log(JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject), this.selectedProject, this.editedProject);
       this.hasChanges = JSON.stringify(this.selectedProject) !== JSON.stringify(this.editedProject);
     }
   }
@@ -255,8 +256,6 @@ export class ProjectsComponent {
           this.toastService.show({ message: data.message, classname: 'bg-success text-light', delay: 5000 });
         },
         error: (error: any) => {
-          this.hasChanges = false;
-          Object.assign(this.selectedProject!, this.editedProject!);
           this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
         }
       });

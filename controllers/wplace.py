@@ -66,7 +66,7 @@ class WPlace:
         return (0, 0)
 
 
-    def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], path: str, api_image: str) -> Tuple[str, str]:
+    def generate_command(self, pixels: list, coords: Tuple[int, int, int, int], path: str, api_image: str) -> Tuple[str, str, bool]:
         """
         Generate a compact js command to fix the pixels
 
@@ -143,11 +143,19 @@ class WPlace:
             }}, 3000);
         """).strip()
 
+        # Read last command to compare if exists
+        same_command = False
+        if os.path.exists(f"{path}/fix_pixels.js"):
+            with open(f"{path}/fix_pixels.js", "r") as f:
+                last_command = f.read()
+                if last_command == js_content:
+                    same_command = True
+
         # Save command to file
         with open(f"{path}/fix_pixels.js", "w") as f:
             f.write(js_content)
 
-        return js_content, skip_logs
+        return js_content, skip_logs, same_command
 
     
     def crop_image(self, image_path: str, crop_box: Tuple[int, int, int, int]) -> None:
@@ -401,9 +409,10 @@ class WPlace:
             result = self.generate_command(changed, coords, path, api_image)
             command = result[0]
             skip_logs = result[1]
+            same_command = result[2]
             logs += skip_logs
 
-            if art["track"]:
+            if art["track"] and not same_command:
                 self.send_alert(
                     f"# ¡ALERT! {len(changed)} Pixels changed!!! :< (Before, After)\n\n## Command to fix the pixels:\n",
                     command,

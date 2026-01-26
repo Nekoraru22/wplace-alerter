@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import json
 import time
@@ -270,8 +271,8 @@ def get_project_logs(project):
         return jsonify(message=f"No logs found for project {project}."), 404
     try:
         with open(log_path, 'r') as file:
-            logs = file.read()
-        return jsonify(message=logs), 200
+            logs = file.readlines()[:10000]
+        return jsonify(message=''.join(logs)), 200
     except Exception as e:
         return jsonify(message=str(e)), 400
     
@@ -284,9 +285,42 @@ def get_project_fix_command(project):
     log_path = f"data/{project}/fix_pixels.js"
     if not os.path.exists(log_path):
         return jsonify(message=f"No fix command found for project {project}."), 404
+
+    limit = request.args.get('limit', type=int)
+
     try:
         with open(log_path, 'r') as file:
             fix_command = file.read()
+
+        if limit is not None and limit > 0:
+            # Find pixelData array and limit its elements
+            match = re.search(r'const pixelData = \[', fix_command)
+            if match:
+                start_idx = match.end()
+                # Parse the array manually to handle nested arrays
+                bracket_count = 1
+                idx = start_idx
+                elements = []
+                element_start = start_idx
+
+                while bracket_count > 0 and idx < len(fix_command):
+                    char = fix_command[idx]
+                    if char == '[':
+                        bracket_count += 1
+                    elif char == ']':
+                        bracket_count -= 1
+                        if bracket_count == 1:
+                            # End of an element
+                            elements.append(fix_command[element_start:idx+1].strip().strip(',').strip())
+                            element_start = idx + 1
+                    idx += 1
+
+                # Limit elements and reconstruct
+                limited_elements = [e for e in elements[:limit] if e.startswith('[')]
+                prefix = fix_command[:match.end()]
+                suffix = fix_command[idx-1:]
+                fix_command = prefix + ', '.join(limited_elements) + suffix
+
         return jsonify(message=fix_command), 200
     except Exception as e:
         return jsonify(message=str(e)), 400

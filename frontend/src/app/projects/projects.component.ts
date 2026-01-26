@@ -61,6 +61,7 @@ export class ProjectsComponent {
   checkingAll: boolean = false;
   imageTimestamp: number = Date.now();
   reversedOrder: boolean = true;
+  limitLogAndComand: number = 10000;
 
   ngOnInit(): void {
     this.serverService.getAutomationSettings().subscribe((data) => {
@@ -168,14 +169,14 @@ export class ProjectsComponent {
       }
     });
 
-    this.serverService.getProjectFixCommand(project.name).subscribe({
+    this.serverService.getProjectFixCommand(project.name, this.limitLogAndComand).subscribe({
       next: (data) => {
         this.fixCommand = data.message;
       }
     });
 
     if (project.griefed) {
-      this.serverService.getProjectFixCommand(project.name).subscribe({
+      this.serverService.getProjectFixCommand(project.name, this.limitLogAndComand).subscribe({
         next: (data) => {
           this.fixCommand = data.message;
           setTimeout(() => {

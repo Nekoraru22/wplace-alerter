@@ -121,8 +121,10 @@ export class ServerServiceService {
   /**
    * Get fix command of the project
    * @param name - Project name
+   * @param limit - Optional limit for pixelData array elements
    */
-  getProjectFixCommand(name: string): Observable<CheckResponse> {
-    return this.http.get<CheckResponse>(`${this.baseUrl}/projects/${name}/fix-command`);
+  getProjectFixCommand(name: string, limit?: number): Observable<CheckResponse> {
+    const params = limit ? `?limit=${limit}` : '';
+    return this.http.get<CheckResponse>(`${this.baseUrl}/projects/${name}/fix-command${params}`);
   }
 }

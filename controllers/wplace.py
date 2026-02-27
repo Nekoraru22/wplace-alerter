@@ -139,7 +139,8 @@ class WPlace:
                         "colorIdx": p[6]
                     }});
                 }});
-                document.querySelector('button.btn-lg.relative').__click();
+                document.querySelector('button.btn-lg.relative').disabled = false;
+                document.querySelector('button.btn-lg.relative').click();
             }}, 3000);
         """).strip()
 

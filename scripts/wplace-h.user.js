@@ -107,7 +107,7 @@
                 console.error('Button not found.');
                 return;
             }
-            button.__click();
+            button.click();
 
             setTimeout(() => {
                 // Click on the canvas to place a pixel

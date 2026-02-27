@@ -361,7 +361,26 @@ def automated_check_loop():
             time.sleep(10)  # Sleep for a while before checking again
 
 
+def sanitize():
+    """
+    Migrates api_image URLs from the old format (/files/s0/tiles/) to the new format (/tile/).
+    """
+    load_arts_data()
+    old_pattern = re.compile(r'https://backend\.wplace\.live/files/s0/tiles/(\d+)/(\d+)\.png')
+    changed = False
+    for project, art in ARTS_DATA["arts"].items():
+        url = art.get("api_image", "")
+        new_url = old_pattern.sub(r'https://backend.wplace.live/tile/\1/\2.png', url)
+        if new_url != url:
+            ARTS_DATA["arts"][project]["api_image"] = new_url
+            print(f"[SANITIZE] Migrated api_image for '{project}': {url} -> {new_url}")
+            changed = True
+    if changed:
+        save_arts_data()
+
+
 def main(args: list):
+    sanitize()
     if len(args) == 3 and args[1] == "--check":
         if args[2] == "all":
             return check_all_projects()

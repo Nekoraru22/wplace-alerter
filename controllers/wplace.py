@@ -31,7 +31,7 @@ class WPlaceArtInterface(BaseModel):
     check_transparent_pixels: bool
     last_checked: str = ""
     griefed: bool = False
-    api_image: str = Field(..., pattern=r'^https://backend\.wplace\.live/files/s0/tiles/\d+/\d+\.png$')
+    api_image: str = Field(..., pattern=r'^https://backend\.wplace\.live/tile/\d+/\d+\.png$')
     start_coords: Position
     end_coords: Position
 
@@ -58,7 +58,7 @@ class WPlace:
         Returns:
             List of tile information
         """
-        match = re.search(r'https://backend\.wplace\.live/files/s0/tiles/(\d+)/(\d+)\.png', api_image)
+        match = re.search(r'https://backend\.wplace\.live/tile/(\d+)/(\d+)\.png', api_image)
         if match:
             tile_x = int(match.group(1))
             tile_y = int(match.group(2))

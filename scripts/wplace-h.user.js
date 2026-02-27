@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://wplace.live/*
 // @grant       none
-// @version     2.0
+// @version     3.0.0
 // @author      Nekoraru22
 // @description Intercepts a canvas method to trigger the debugger inside the target class's scope.
 // @run-at      document-start

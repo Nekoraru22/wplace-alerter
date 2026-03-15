@@ -365,8 +365,8 @@ class WPlace:
         )
         path = f"data/{project}/"
 
+        prefix = Fore.LIGHTYELLOW_EX + f"Checking art: {Fore.RESET}{project}" + Fore.LIGHTYELLOW_EX + " -> "
         try:
-            print(Fore.LIGHTYELLOW_EX + f"Checking art: {Fore.RESET}{project}", end=' -> ')
             self.download_image(api_image, f"{path}new.png")
         except Exception as e:
             raise Exception(Fore.LIGHTRED_EX + f"Error downloading image: {e}")
@@ -378,7 +378,7 @@ class WPlace:
         if not os.path.exists(f"{path}original.png"):
             with open(f"{path}original.png", 'wb') as f:
                 f.write(open(f"{path}new.png", 'rb').read())
-            print(Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.", end=' -> ')
+            print(prefix + Fore.LIGHTYELLOW_EX + "Original image not found, saving new image as original.")
 
         # Check for changes
         logs = str()
@@ -388,20 +388,20 @@ class WPlace:
             if len(changed) == 0:
                 if art["griefed"]:
                     message = "Pixels restored to original state."
-                    print(Fore.LIGHTCYAN_EX + message)
+                    print(prefix + Fore.LIGHTCYAN_EX + message)
                     art["griefed"] = False
                     fix_path = f"{path}fix_pixels.js"
                     if os.path.exists(fix_path):
                         os.remove(fix_path)
                 else:
                     message = "No changes detected in pixels."
-                    print(Fore.LIGHTGREEN_EX + message)
+                    print(prefix + Fore.LIGHTGREEN_EX + message)
 
                 self.update_project_in_arts_file(art, project, path, logs)
                 return message, art
             else:
-                print(Fore.LIGHTRED_EX + f"Detected {len(changed)} changed pixels!")
                 message = f"Detected {len(changed)} changed pixels!"
+                print(prefix + Fore.LIGHTRED_EX + message)
                 logs += f"Detected {len(changed)} changed pixels!\n"
                 art["griefed"] = True
 
@@ -426,14 +426,14 @@ class WPlace:
         else:
             if art["griefed"]:
                 message = "Pixels restored to original state."
-                print(Fore.LIGHTCYAN_EX + message)
+                print(prefix + Fore.LIGHTCYAN_EX + message)
                 art["griefed"] = False
                 fix_path = f"{path}fix_pixels.js"
                 if os.path.exists(fix_path):
                     os.remove(fix_path)
             else:
                 message = "No changes detected in pixels."
-                print(Fore.LIGHTGREEN_EX + message)
+                print(prefix + Fore.LIGHTGREEN_EX + message)
         self.update_project_in_arts_file(art, project, path, logs)
 
         art["name"] = project

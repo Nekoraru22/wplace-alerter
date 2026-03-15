@@ -390,6 +390,9 @@ class WPlace:
                     message = "Pixels restored to original state."
                     print(Fore.LIGHTCYAN_EX + message)
                     art["griefed"] = False
+                    fix_path = f"{path}fix_pixels.js"
+                    if os.path.exists(fix_path):
+                        os.remove(fix_path)
                 else:
                     message = "No changes detected in pixels."
                     print(Fore.LIGHTGREEN_EX + message)
@@ -425,6 +428,9 @@ class WPlace:
                 message = "Pixels restored to original state."
                 print(Fore.LIGHTCYAN_EX + message)
                 art["griefed"] = False
+                fix_path = f"{path}fix_pixels.js"
+                if os.path.exists(fix_path):
+                    os.remove(fix_path)
             else:
                 message = "No changes detected in pixels."
                 print(Fore.LIGHTGREEN_EX + message)

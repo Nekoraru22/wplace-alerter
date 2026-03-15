@@ -380,7 +380,7 @@ def sanitize():
 
 
 def main(args: list):
-    sanitize()
+    # sanitize()
     if len(args) == 3 and args[1] == "--check":
         if args[2] == "all":
             return check_all_projects()

@@ -1,17 +1,17 @@
+import base64
+import json
 import os
 import re
-import cv2
-import json
 import time
-import base64
-import requests
-import numpy as np
-
-from PIL import Image
 from textwrap import dedent
+from typing import Dict, List, Tuple
+
+import cv2
+import numpy as np
+import requests
 from colorama import Fore, init
 from deprecated import deprecated
-from typing import List, Dict, Tuple
+from PIL import Image
 from pydantic import BaseModel, Field
 
 from controllers.colors import get_color_id
@@ -265,8 +265,8 @@ class WPlace:
             path: The path to save the image
         """
         from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
         from selenium.common.exceptions import TimeoutException
+        from selenium.webdriver.chrome.options import Options
         options = Options()
         options.add_argument("--disable-logging")
         options.add_argument("--log-level=3")

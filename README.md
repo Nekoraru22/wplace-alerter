@@ -56,3 +56,4 @@ It's important to note that the final coordinates should include an additional p
 # TODO
 - Add tool to get coordinates automatically
 - Fixing process ???
+- https://github.com/CloakHQ/CloakBrowser

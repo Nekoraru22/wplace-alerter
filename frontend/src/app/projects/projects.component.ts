@@ -421,6 +421,30 @@ export class ProjectsComponent {
     element.src = 'assets/logo.gif';
   }
 
+  downloadOriginal(): void {
+    const url = this.serverService.getBaseUrl() + 'data/' + this.selectedProject!.name + '/original.png';
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'original.png';
+    a.click();
+  }
+
+  uploadOriginal(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    this.serverService.uploadOriginal(this.selectedProject!.name, file).subscribe({
+      next: (data) => {
+        this.toastService.show({ message: data.message, classname: 'bg-success text-light' });
+        this.imageTimestamp = Date.now();
+        input.value = '';
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+      }
+    });
+  }
+
   copyCode(): void {
     if (this.fixCommand) {
       this.clipboard.copy(this.fixCommand);

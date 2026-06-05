@@ -64,7 +64,14 @@
                             (load)="isImgLoading = false"
                             (error)="onImageError($event)"
                         >
-                        <div class="mt-1 mb-2">Original</div>
+                        <div class="mt-1 mb-2 d-flex align-items-center gap-2">
+                            <span>Original</span>
+                            <button class="btn btn-sm btn-outline-secondary" (click)="downloadOriginal()" title="Download original.png">Download</button>
+                            <label class="btn btn-sm btn-outline-secondary mb-0" title="Upload original.png">
+                                Upload
+                                <input type="file" accept="image/png" class="d-none" (change)="uploadOriginal($event)">
+                            </label>
+                        </div>
                     </div>
                     <div class="d-flex flex-column align-items-center w-100">
                         @if (isImgLoading) {

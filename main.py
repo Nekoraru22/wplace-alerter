@@ -261,6 +261,22 @@ def toggle_automation_checks():
     return jsonify(message=f"Automated checks {'enabled' if data['automated_checks'] else 'disabled'} successfully."), 200
 
 
+@app.post('/projects/<project>/original')
+def upload_original(project):
+    load_arts_data()
+    if project not in ARTS_DATA["arts"]:
+        return jsonify(message=f"Project {project} does not exist."), 404
+    if 'file' not in request.files:
+        return jsonify(message="No file provided."), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify(message="No file selected."), 400
+    path = f"data/{project}/"
+    os.makedirs(path, exist_ok=True)
+    file.save(os.path.join(path, 'original.png'))
+    return jsonify(message="original.png updated successfully."), 200
+
+
 @app.get('/projects/<project>/logs')
 def get_project_logs(project):
     load_arts_data()

@@ -111,6 +111,17 @@ export class ServerServiceService {
   }
 
   /**
+   * Upload original.png for a project (overwrites existing)
+   * @param name - Project name
+   * @param file - PNG file to upload
+   */
+  uploadOriginal(name: string, file: File): Observable<CheckResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<CheckResponse>(`${this.baseUrl}/projects/${name}/original`, formData);
+  }
+
+  /**
    * Get logs of the project
    * @param name - Project name
    */

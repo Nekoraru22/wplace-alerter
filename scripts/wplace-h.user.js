@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://wplace.live/*
 // @grant       none
-// @version     3.0.0
+// @version     3.1.0
 // @author      Nekoraru22
 // @description Intercepts a canvas method to trigger the debugger inside the target class's scope.
 // @run-at      document-start
@@ -30,26 +30,58 @@
     // Hook Map.prototype.get
     const originalMapGet = Map.prototype.get;
     window.data = window.data || {};
+    const safeKeys = (o) => { try { return Object.keys(o); } catch { return []; } };
 
     Map.prototype.get = function(key) {
         const value = originalMapGet.call(this, key);
 
         try {
-            if (value && value.reactions && Array.isArray(value.reactions)) {
+            if (!window.data.ctx && value && Array.isArray(value.reactions)) {
                 for (const reaction of value.reactions) {
-                    if (reaction && reaction.ctx?.s) {
-                        const s = reaction.ctx.s;
-                        if (s.crosshair && s.map && !window.data.ctx) {
-                            console.log('🌍 Map functions hooked');
-                            window.data.ctx = s;
-                            break;
+                    let ctx = reaction?.ctx;
+                    let depth = 0;
+
+                    while (ctx && depth++ < 10) {
+                        const s = ctx.s;
+
+                        if (s) {
+                            const keys = safeKeys(s);
+                            if (keys.includes('map') && keys.includes('zoom')) {
+                                console.log('🌍 Map functions hooked');
+                                window.data.ctx = s;
+                                break;
+                            }
                         }
+                        ctx = ctx.p;
                     }
+                    if (window.data.ctx) break;
                 }
             }
         } catch {}
-
         return value;
+    };
+
+    // Unhook Map.prototype.get after finding the context
+    const unhookTimer = setInterval(() => {
+        if (window.data.ctx) {
+            Map.prototype.get = originalMapGet;
+            clearInterval(unhookTimer);
+            console.log('🔌 Map.get unhooked');
+        }
+    }, 500);
+
+    setTimeout(() => {
+        clearInterval(unhookTimer);
+        if (Map.prototype.get !== originalMapGet) {
+            Map.prototype.get = originalMapGet;
+            console.warn('⚠️ Map ctx not found, unhooking Map.get');
+        }
+    }, 30000);
+
+    // Lazy access to the MapLibre instance
+    window.getMap = () => {
+        const m = window.data.ctx?.map;
+        return (m && typeof m === 'object' && 'v' in m && 'reactions' in m) ? m.v : m;
     };
 
     // Hook WeakMap.prototype.set
@@ -80,7 +112,7 @@
         if (!canvas) {
             return;
         }
-        
+
         setTimeout(() => {
             // Click at top-left corner of the canvas
             const rect = canvas.getBoundingClientRect();

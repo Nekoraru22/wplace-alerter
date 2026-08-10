@@ -112,36 +112,43 @@ class WPlace:
 
         # Generate the JS file with data + reconstruction code
         js_content = dedent(f"""
-            function pixelsToLatLng(x, y) {{
-                return data.ctx.crosshair.gm.pixelsToLatLon(x, y, 11);
+            const map = window.getMap ? window.getMap() : (data.ctx.map?.v ?? data.ctx.map);
+
+            function pixelsToLatLng(x, y, zoom = 11) {{
+                const size = Math.pow(2, zoom) * 1000;
+                const lng = (x / size) * 360 - 180;
+                const n = Math.PI - (2 * Math.PI * y) / size;
+                const lat = (180 / Math.PI) * Math.atan(Math.sinh(n));
+                return [lat, lng];
             }}
-            function moveTo(x, y) {{
-                const [lat, lng] = pixelsToLatLng(x, y);
-                data.ctx.map.flyTo({{
-                    center: {{ lat, lng }},
-                    zoom: 14
-                }})
-            }}
+
             const pixelData = {json.dumps(compact_data)};
             const tiles = {json.dumps(api_tiles)};
             const t0 = tiles[0];
             const t1 = tiles[1];
-            const charges = Math.trunc(data.user.charges);
-            moveTo(t0*1000 + pixelData[0][0], t1*1000 + pixelData[0][1]);
-            // data.ctx.map.showTileBoundaries = true;
-            setTimeout(() => {{
+            const season = 0;
+
+            const [lat, lng] = pixelsToLatLng(t0 * 1000 + pixelData[0][0], t1 * 1000 + pixelData[0][1]);
+
+            map.once('moveend', () => {{
+                const charges = Math.trunc(data.user.charges);
+
                 pixelData.slice(0, charges).forEach(p => {{
-                    o.set(`t=(${{t0}},${{t1}});p=(${{p[0]}},${{p[1]}});s=0`, {{
+                    o.set(`t=(${{t0}},${{t1}});p=(${{p[0]}},${{p[1]}});s=${{season}}`, {{
                         "color": {{ "r": p[2], "g": p[3], "b": p[4], "a": p[5] }},
                         "tile": tiles,
                         "pixel": [p[0], p[1]],
-                        "season": data.ctx.season,
+                        "season": season,
                         "colorIdx": p[6]
                     }});
                 }});
-                document.querySelector('button.btn-lg.relative').disabled = false;
-                document.querySelector('button.btn-lg.relative').click();
-            }}, 3000);
+
+                const btn = document.querySelector('button.btn-lg.relative');
+                btn.disabled = false;
+                btn.click();
+            }});
+
+            map.flyTo({{ center: {{ lat, lng }}, zoom: 14 }});
         """).strip()
 
         # Read last command to compare if exists

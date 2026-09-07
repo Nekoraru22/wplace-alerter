@@ -10,7 +10,7 @@ from flask_cors import CORS
 from pydantic import ValidationError
 from flask import Flask, Blueprint, request, jsonify
 
-from controllers.colors import Color, color_config
+from controllers.colors import Color, color_config, quantize_image
 from controllers.wplace import WPlace, WPlaceArtInterface
 
 
@@ -273,8 +273,39 @@ def upload_original(project):
         return jsonify(message="No file selected."), 400
     path = f"data/{project}/"
     os.makedirs(path, exist_ok=True)
-    file.save(os.path.join(path, 'original.png'))
+    original_path = os.path.join(path, 'original.png')
+    file.save(original_path)
+
+    # Snap edited/antialiased colors to the palette, they can never be repainted
+    try:
+        fixed = quantize_image(original_path)
+    except Exception as e:
+        return jsonify(message=f"original.png saved but could not be quantized: {e}"), 200
+
+    if fixed:
+        return jsonify(message=f"original.png updated successfully ({fixed} pixels snapped to the palette)."), 200
     return jsonify(message="original.png updated successfully."), 200
+
+
+@app.post('/projects/<project>/original/quantize')
+def quantize_original(project):
+    load_arts_data()
+    if project not in ARTS_DATA["arts"]:
+        return jsonify(message=f"Project {project} does not exist."), 404
+
+    original_path = f"data/{project}/original.png"
+    if not os.path.exists(original_path):
+        return jsonify(message=f"No original.png found for project {project}."), 404
+
+    only_owned = bool((request.json or {}).get("only_owned", False)) if request.is_json else False
+    try:
+        fixed = quantize_image(original_path, only_owned=only_owned)
+    except Exception as e:
+        return jsonify(message=f"Error quantizing original.png: {e}"), 500
+
+    if fixed:
+        return jsonify(message=f"{fixed} pixels snapped to the closest palette color."), 200
+    return jsonify(message="original.png already uses only palette colors."), 200
 
 
 @app.get('/projects/<project>/logs')

@@ -59,6 +59,7 @@ export class ProjectsComponent {
 
   isImgLoading: boolean = true;
   checkingAll: boolean = false;
+  isQuantizing: boolean = false;
   imageTimestamp: number = Date.now();
   reversedOrder: boolean = true;
   limitLogAndComand: number = 10000;
@@ -441,6 +442,21 @@ export class ProjectsComponent {
       },
       error: (error: any) => {
         this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+      }
+    });
+  }
+
+  quantizeOriginal(): void {
+    this.isQuantizing = true;
+    this.serverService.quantizeOriginal(this.selectedProject!.name).subscribe({
+      next: (data) => {
+        this.toastService.show({ message: data.message, classname: 'bg-success text-light' });
+        this.imageTimestamp = Date.now();
+        this.isQuantizing = false;
+      },
+      error: (error: any) => {
+        this.toastService.show({ message: error.error.message, classname: 'bg-danger text-light', delay: 5000 });
+        this.isQuantizing = false;
       }
     });
   }

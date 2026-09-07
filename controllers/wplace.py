@@ -14,7 +14,7 @@ from deprecated import deprecated
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from controllers.colors import get_color_id
+from controllers.colors import get_color_id, get_nearest_color
 
 init(autoreset=True)
 
@@ -98,7 +98,8 @@ class WPlace:
             # Avoid paid color pixels
             if color_idx == None:
                 if pixel["old_color"][3] != 0:
-                    skip_logs += f"⚠️ Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color\n"
+                    nearest_name, _, _ = get_nearest_color(pixel["old_color"])
+                    skip_logs += f"⚠️ Skipping pixel {counter}/{len(pixels)}: {pixel} for being an unknown color (nearest: {nearest_name}, fix the original image to use it)\n"
                 counter += 1
                 continue
             elif not owned:

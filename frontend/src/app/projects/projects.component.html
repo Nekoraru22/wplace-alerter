@@ -71,6 +71,12 @@
                                 Upload
                                 <input type="file" accept="image/png" class="d-none" (change)="uploadOriginal($event)">
                             </label>
+                            <button
+                                class="btn btn-sm btn-outline-secondary"
+                                (click)="quantizeOriginal()"
+                                [disabled]="isQuantizing"
+                                title="Snap every pixel of original.png to the closest wplace palette color"
+                            >Fix colors</button>
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-center w-100">

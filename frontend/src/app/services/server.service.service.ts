@@ -122,6 +122,17 @@ export class ServerServiceService {
   }
 
   /**
+   * Snap every pixel of original.png to the closest wplace palette color
+   * @param name - Project name
+   * @param onlyOwned - Whether to snap only to the colors currently owned
+   */
+  quantizeOriginal(name: string, onlyOwned = false): Observable<CheckResponse> {
+    return this.http.post<CheckResponse>(`${this.baseUrl}/projects/${name}/original/quantize`, {
+      only_owned: onlyOwned
+    });
+  }
+
+  /**
    * Get logs of the project
    * @param name - Project name
    */

@@ -1,5 +1,9 @@
 import json
 from enum import Enum
+from typing import List, Tuple
+
+import numpy as np
+from PIL import Image
 
 
 class Color(Enum):
@@ -121,6 +125,116 @@ def get_color_id(rgb):
         if color.value[:4] == rgb_tuple:
             return color.name, idx, color_config.get_bool(color.name)
     return None, None, None
+
+
+def get_palette(only_owned: bool = False) -> Tuple[List[str], List[int], np.ndarray]:
+    """
+    Build the list of opaque palette colors, optionally limited to owned ones.
+
+    Args:
+        only_owned: If True, skip the colors not currently owned
+
+    Returns:
+        Tuple with the color names, their ids and their RGB values as an array
+    """
+    names, ids, rgbs = [], [], []
+    for idx, color in enumerate(list(Color)):
+        # Transparency is handled by the alpha channel, not by distance
+        if color.value[3] == 0:
+            continue
+        if only_owned and not color_config.get_bool(color.name):
+            continue
+        names.append(color.name)
+        ids.append(idx)
+        rgbs.append(color.value[:3])
+    return names, ids, np.array(rgbs, dtype=np.float32)
+
+
+def _nearest_palette_indices(rgbs: np.ndarray, palette: np.ndarray) -> np.ndarray:
+    """
+    Find the closest palette entry for every given RGB value.
+
+    Uses the "redmean" weighted distance, which matches human perception much
+    better than a plain euclidean distance while staying cheap to compute.
+
+    Args:
+        rgbs: Array of shape (N, 3) with the colors to match
+        palette: Array of shape (P, 3) with the available colors
+
+    Returns:
+        Array of shape (N,) with the index of the closest palette entry
+    """
+    rmean = (rgbs[:, None, 0] + palette[None, :, 0]) / 2
+    delta = rgbs[:, None, :] - palette[None, :, :]
+    dr, dg, db = delta[..., 0], delta[..., 1], delta[..., 2]
+    distance = (2 + rmean / 256) * dr ** 2 + 4 * dg ** 2 + (2 + (255 - rmean) / 256) * db ** 2
+    return np.argmin(distance, axis=1)
+
+
+def get_nearest_color(rgba, only_owned: bool = False):
+    """
+    Get the palette color closest to an arbitrary RGBA value.
+
+    Args:
+        rgba: The (r, g, b, a) color to approximate
+        only_owned: If True, only consider the colors currently owned
+
+    Returns:
+        Tuple with the color name, its id and whether it is owned
+    """
+    if len(rgba) > 3 and rgba[3] == 0:
+        return Color.TRANSPARENT.name, 0, color_config.get_bool(Color.TRANSPARENT.name)
+
+    names, ids, palette = get_palette(only_owned)
+    if not names:
+        return None, None, None
+
+    rgbs = np.array([rgba[:3]], dtype=np.float32)
+    match = int(_nearest_palette_indices(rgbs, palette)[0])
+    return names[match], ids[match], color_config.get_bool(names[match])
+
+
+def quantize_image(image_path: str, only_owned: bool = False, alpha_threshold: int = 128) -> int:
+    """
+    Snap every pixel of an image to the closest wplace palette color.
+
+    Images edited outside of wplace (resized, antialiased, JPEG compressed...)
+    contain colors that do not exist in the canvas, so they can never be
+    matched or repainted. Rewriting them in place keeps the comparison and the
+    fix commands consistent.
+
+    Args:
+        image_path: Path to the image to quantize (overwritten in place)
+        only_owned: If True, only snap to the colors currently owned
+        alpha_threshold: Pixels below this alpha become fully transparent
+
+    Returns:
+        Number of pixels that were changed
+    """
+    image = Image.open(image_path).convert("RGBA")
+    pixels = np.array(image)
+    original = pixels.copy()
+
+    alpha = pixels[..., 3]
+    transparent = alpha < alpha_threshold
+    pixels[transparent] = (0, 0, 0, 0)
+    pixels[~transparent, 3] = 255
+
+    opaque = pixels[~transparent][:, :3]
+    if opaque.size:
+        # Match unique colors only, an image has far more pixels than colors
+        unique, inverse = np.unique(opaque, axis=0, return_inverse=True)
+        inverse = inverse.reshape(-1)
+        _, _, palette = get_palette(only_owned)
+        match = _nearest_palette_indices(unique.astype(np.float32), palette)
+        pixels[~transparent, :3] = palette[match[inverse]].astype(np.uint8)
+
+    # Pixels that were already invisible do not count, only their hidden RGB
+    # noise was normalized, which changes nothing on the canvas
+    visible = np.any(pixels != original, axis=2) & (original[..., 3] != 0)
+    if np.any(pixels != original):
+        Image.fromarray(pixels, mode="RGBA").save(image_path)
+    return int(np.count_nonzero(visible))
 
 
 # if __name__ == "__main__":

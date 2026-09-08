@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://wplace.live/*
 // @grant       none
-// @version     3.1.0
+// @version     3.2.0
 // @author      Nekoraru22
 // @description Intercepts a canvas method to trigger the debugger inside the target class's scope.
 // @run-at      document-start
@@ -13,15 +13,21 @@
     'use strict';
 
     // Hook Map.prototype.set
+    // Stays armed: the pixel map is recreated every time the paint panel is, so window.o would go stale.
+    // Only the first map of each tick is kept, the erase map gets the same entries right after the pixel one.
     const originalMapSet = Map.prototype.set;
     window.o = null;
+    let captureLocked = false;
 
     Map.prototype.set = function(key, value) {
         try {
-            if (key.startsWith && key.startsWith('t=') && value.color !== undefined) {
-                window.o = this;
-                console.log('😺 Pixel Map Hooked');
-                Map.prototype.set = originalMapSet;
+            if (typeof key === 'string' && key.startsWith('t=') && value.color !== undefined && !captureLocked) {
+                captureLocked = true;
+                queueMicrotask(() => captureLocked = false);
+                if (window.o !== this) {
+                    window.o = this;
+                    console.log('😺 Pixel Map Hooked');
+                }
             }
         } catch { }
         return originalMapSet.call(this, key, value);
@@ -87,17 +93,22 @@
     // Hook WeakMap.prototype.set
     const originalWeakMapSet = WeakMap.prototype.set;
 
+    // User class: only the user store owns both 'data' and 'charges' (other stores also have refresh())
+    const isUserStore = (key) => {
+        try {
+            if (!key || typeof key !== 'object') return false;
+            if (!('data' in key) || !('charges' in key)) return false;
+            return key.channel instanceof BroadcastChannel || typeof key.refresh === 'function';
+        } catch {
+            return false;
+        }
+    };
+
     WeakMap.prototype.set = function(key, value) {
-        if (key && typeof key === 'object') {
-            try {
-                // User class
-                const hasChannel = key.channel instanceof BroadcastChannel;
-                const hasRefresh = typeof key.refresh === 'function';
-                if ((hasChannel || hasRefresh) && !window.data.user) {
-                    console.log('🎯 User Hooked');
-                    window.data.user = key;
-                }
-            } catch {}
+        if (!window.data.user && isUserStore(key)) {
+            console.log('🎯 User Hooked');
+            window.data.user = key;
+            WeakMap.prototype.set = originalWeakMapSet;
         }
         return originalWeakMapSet.call(this, key, value);
     };

@@ -1,0 +1,21 @@
+[project]
+name = "wplace-alerter"
+version = "0.1.0"
+description = "Detect changes to pixel art and send alerts via Discord webhook"
+requires-python = ">=3.10"
+dependencies = [
+    "colorama==0.4.6",
+    "deprecated==1.2.18",
+    "flask==3.1.2",
+    "flask-cors==6.0.1",
+    "numpy==1.26.4",
+    "opencv-python==4.9.0.80",
+    "pillow==11.3.0",
+    "pydantic==2.11.10",
+    "requests==2.32.5",
+    "selenium==4.36.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"

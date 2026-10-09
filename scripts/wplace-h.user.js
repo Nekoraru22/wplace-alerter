@@ -145,7 +145,7 @@
             });
 
             // Check if the paint button exists and click it
-            const button = document.querySelector('button.btn-lg.relative');
+            const button = document.querySelector('button.btn-lg.relative.pixel-ui');
             if (!button) {
                 console.error('Button not found.');
                 return;

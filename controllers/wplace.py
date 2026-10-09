@@ -144,7 +144,7 @@ class WPlace:
                     }});
                 }});
 
-                const btn = document.querySelector('button.btn-lg.relative');
+                const btn = document.querySelector('button.btn-lg.relative.pixel-ui');
                 btn.disabled = false;
                 btn.click();
             }});

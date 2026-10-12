@@ -132,6 +132,11 @@ class WPlace:
             const [lat, lng] = pixelsToLatLng(t0 * 1000 + pixelData[0][0], t1 * 1000 + pixelData[0][1]);
 
             map.once('moveend', () => {{
+                if (!window.o) {{
+                    console.error('Pixel map not hooked (window.o is null), place and erase a pixel manually and retry');
+                    return;
+                }}
+
                 const charges = Math.trunc(data.user.charges);
 
                 pixelData.slice(0, charges).forEach(p => {{
@@ -144,7 +149,7 @@ class WPlace:
                     }});
                 }});
 
-                const btn = document.querySelector('.paint-layout-confirm button.btn-primary');
+                const btn = document.querySelector('button.btn-primary:has(.paint-button-content)');
                 btn.disabled = false;
                 btn.click();
             }});

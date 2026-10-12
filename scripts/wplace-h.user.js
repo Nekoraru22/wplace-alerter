@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://wplace.live/*
 // @grant       none
-// @version     3.2.0
+// @version     3.4.0
 // @author      Nekoraru22
 // @description Intercepts a canvas method to trigger the debugger inside the target class's scope.
 // @run-at      document-start
@@ -145,7 +145,7 @@
             });
 
             // Check if the paint button exists and click it
-            const button = document.querySelector('.paint-layout-confirm button.btn-primary');
+            const button = document.querySelector('button.btn-primary:has(.paint-button-content)');
             if (!button) {
                 console.error('Button not found.');
                 return;

@@ -145,7 +145,7 @@
             });
 
             // Check if the paint button exists and click it
-            const button = document.querySelector('button.btn-lg.relative.pixel-ui');
+            const button = document.querySelector('.paint-layout-confirm button.btn-primary');
             if (!button) {
                 console.error('Button not found.');
                 return;

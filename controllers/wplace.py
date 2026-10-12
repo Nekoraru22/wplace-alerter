@@ -144,7 +144,7 @@ class WPlace:
                     }});
                 }});
 
-                const btn = document.querySelector('button.btn-lg.relative.pixel-ui');
+                const btn = document.querySelector('.paint-layout-confirm button.btn-primary');
                 btn.disabled = false;
                 btn.click();
             }});

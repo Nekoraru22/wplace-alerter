@@ -158,7 +158,7 @@
 
                 setTimeout(() => {
                     // Press erase button and erase the pixel
-                    const tooltipButton = document.querySelector("div.tooltip.ml-auto")?.querySelector("button");
+                    const tooltipButton = document.querySelector("div.ml-auto[data-tooltip] > button[aria-pressed]");
                     if (tooltipButton) {
                         tooltipButton.click();
 
